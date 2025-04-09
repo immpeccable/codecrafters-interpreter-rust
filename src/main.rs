@@ -61,7 +61,6 @@ fn main() {
                             println!("SEMICOLON {} null", char)
                         },
                         '=' => {
-                            // Peek without consuming the next character.
                             if let Some(&next_ch) = chars.peek() {
                                 if next_ch == '=' {
                                     chars.next();
@@ -70,8 +69,19 @@ fn main() {
                                     println!("EQUAL {} null", "=");
                                 }
                             } else {
-                                // This is the last character in the input.
                                 println!("EQUAL {} null", "=");
+                            }
+                        },
+                        '!' => {
+                            if let Some(&next_ch) = chars.peek() {
+                                if next_ch == '=' {
+                                    chars.next();
+                                    println!("BANG_EQUAL != null");
+                                } else {
+                                    println!("BANG ! null");
+                                }
+                            } else {
+                                println!("BANG ! null");
                             }
                         },
                         fallback => {
