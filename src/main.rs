@@ -84,6 +84,30 @@ fn main() {
                                 println!("BANG ! null");
                             }
                         },
+                        '<' => {
+                            if let Some(&next_ch) = chars.peek() {
+                                if next_ch == '=' {
+                                    chars.next();
+                                    println!("LESS_EQUAL <= null");
+                                } else {
+                                    println!("LESS < null");
+                                }
+                            } else {
+                                println!("LESS < null");
+                            }
+                        },
+                        '>' => {
+                            if let Some(&next_ch) = chars.peek() {
+                                if next_ch == '=' {
+                                    chars.next();
+                                    println!("GREATER_EQUAL >= null");
+                                } else {
+                                    println!("GREATER > null");
+                                }
+                            } else {
+                                println!("GREATER > null");
+                            }
+                        },
                         fallback => {
                             exit_code = 65;
                             writeln!(io::stderr(), "[line 1] Error: Unexpected character: {}", fallback).unwrap()
