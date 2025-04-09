@@ -31,6 +31,12 @@ fn main() {
                         ')' => {
                             println!("RIGHT_PAREN {} null", char)
                         },
+                        '{' => {
+                            println!("LEFT_BRACE {} null", char)
+                        },
+                        '}' => {
+                            println!("RIGHT_BRACE {} null", char)
+                        },
                         _ => {
                             // writeln!(io::stderr(), "Unknown command {}", command).unwrap()
                         }
