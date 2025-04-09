@@ -119,6 +119,7 @@ fn main() {
                                 println!("SLASH / null");
                             }
                         },
+                        '\n' | '\t' | ' '  => continue,
                         fallback => {
                             exit_code = 65;
                             writeln!(io::stderr(), "[line 1] Error: Unexpected character: {}", fallback).unwrap()
