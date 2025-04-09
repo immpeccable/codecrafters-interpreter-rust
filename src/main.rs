@@ -2,6 +2,16 @@ use std::env;
 use std::fs;
 use std::process::exit;
 use std::io::{self, Write};
+use std::iter::Peekable;
+use std::str::Chars;
+
+fn consume_until_next_line(chars: &mut Peekable<Chars>) {
+    while let Some(char) = chars.next() {
+        if char == '\n' {
+            break;
+        }
+    }
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -13,7 +23,7 @@ fn main() {
     let command = &args[1];
     let filename = &args[2];
     let mut exit_code = 0;
-
+    let mut line = 1;
 
     match command.as_str() {
         "tokenize" => {
@@ -111,7 +121,8 @@ fn main() {
                         '/' => {
                             if let Some(&next_ch) = chars.peek() {
                                 if next_ch == '/' {
-                                    break;
+                                    consume_until_next_line(&mut chars);
+                                    line += 1
                                 } else {
                                     println!("SLASH / null");
                                 }
@@ -119,10 +130,14 @@ fn main() {
                                 println!("SLASH / null");
                             }
                         },
-                        '\n' | '\t' | ' '  => continue,
+                        '\n' => {
+                            line += 1;
+                            continue;
+                        }
+                        '\t' | ' '  => continue,
                         fallback => {
                             exit_code = 65;
-                            writeln!(io::stderr(), "[line 1] Error: Unexpected character: {}", fallback).unwrap()
+                            writeln!(io::stderr(), "[line {}] Error: Unexpected character: {}", line, fallback).unwrap()
                         }
                     }
                 }
