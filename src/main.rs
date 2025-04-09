@@ -108,6 +108,17 @@ fn main() {
                                 println!("GREATER > null");
                             }
                         },
+                        '/' => {
+                            if let Some(&next_ch) = chars.peek() {
+                                if next_ch == '/' {
+                                    break;
+                                } else {
+                                    println!("SLASH / null");
+                                }
+                            } else {
+                                println!("SLASH / null");
+                            }
+                        },
                         fallback => {
                             exit_code = 65;
                             writeln!(io::stderr(), "[line 1] Error: Unexpected character: {}", fallback).unwrap()
