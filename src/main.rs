@@ -37,6 +37,24 @@ fn main() {
                         '}' => {
                             println!("RIGHT_BRACE {} null", char)
                         },
+                        '*' => {
+                            println!("STAR {} null", char)
+                        },
+                        '.' => {
+                            println!("DOT {} null", char)
+                        },
+                        ',' => {
+                            println!("COMMA {} null", char)
+                        },
+                        '+' => {
+                            println!("PLUS {} null", char)
+                        },
+                        '-' => {
+                            println!("MINUS {} null", char)
+                        }
+                        ';' => {
+                            println!("SEMICOLON {} null", char)
+                        }
                         _ => {
                             // writeln!(io::stderr(), "Unknown command {}", command).unwrap()
                         }
