@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::process::exit;
 use std::io::{self, Write};
 
 fn main() {
@@ -11,6 +12,8 @@ fn main() {
 
     let command = &args[1];
     let filename = &args[2];
+    let mut exit_code = 0;
+
 
     match command.as_str() {
         "tokenize" => {
@@ -21,6 +24,7 @@ fn main() {
                 writeln!(io::stderr(), "Failed to read file {}", filename).unwrap();
                 String::new()
             });
+
 
             if !file_contents.is_empty() {
                 for char in file_contents.chars() {
@@ -54,9 +58,10 @@ fn main() {
                         }
                         ';' => {
                             println!("SEMICOLON {} null", char)
-                        }
-                        _ => {
-                            // writeln!(io::stderr(), "Unknown command {}", command).unwrap()
+                        },
+                        fallback => {
+                            exit_code = 65;
+                            writeln!(io::stderr(), "[line 1] Error: Unexpected character: {}", fallback).unwrap()
                         }
                     }
                 }
@@ -69,4 +74,5 @@ fn main() {
             return;
         }
     }
+    exit(exit_code);
 }
