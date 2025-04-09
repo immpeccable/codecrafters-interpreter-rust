@@ -1,3 +1,4 @@
+use std::convert;
 use std::env;
 use std::fs;
 use std::process::exit;
@@ -8,6 +9,10 @@ use std::str::Chars;
 use anyhow::{anyhow, Result, Error};
 use std::result::Result::Ok;
 
+
+fn convert(val: f32, precision: usize) -> String {
+    format!("{:.prec$}", val, prec = precision)
+}
 
 
 fn consume_until_next_line(chars: &mut Peekable<Chars>) {
@@ -29,6 +34,28 @@ fn consume_until_next_double_quote(chars: &mut Peekable<Chars>) -> Result<String
         }
     }
     Err(anyhow!("Unterminated string literal"))
+}
+
+fn is_digit(ch: &char) -> bool {
+    return '0' <= *ch && *ch <= '9';
+}
+
+fn populate_number(chars: &mut Peekable<Chars>, number: &mut String) {
+    let mut dot_used = false;
+    while let Some(ch) = chars.peek() {
+
+        if is_digit(&ch) {
+            number.push(*ch);
+            chars.next();
+        } else if *ch == '.' && !dot_used {
+            dot_used = true;
+            number.push(*ch);
+            chars.next();
+        }
+        else {
+            break;
+        }
+    }
 }
 
 fn main() {
@@ -163,8 +190,27 @@ fn main() {
                         }
                         '\t' | ' '  => continue,
                         fallback => {
-                            exit_code = 65;
-                            writeln!(io::stderr(), "[line {}] Error: Unexpected character: {}", line, fallback).unwrap()
+                            if is_digit(&fallback) {
+                                let mut number = String::new();
+                                number.push(fallback);
+                                populate_number(&mut chars, &mut number);
+                                let float_value = number.parse::<f32>().unwrap();
+
+                                let precision;
+                                match number.find('.') {
+                                    Some(index) => {precision = number.len() - index - 1}
+                                    None => {precision = 0}
+                                }
+                                if precision == 0 || float_value.fract() == 0.0 {
+                                    println!("NUMBER {} {:.1}", number, float_value);
+                                } else {
+                                    println!("NUMBER {} {}", number, number);
+                                }
+                            }
+                            else {
+                                exit_code = 65;
+                                writeln!(io::stderr(), "[line {}] Error: Unexpected character: {}", line, fallback).unwrap()
+                            }
                         }
                     }
                 }
