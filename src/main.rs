@@ -27,7 +27,8 @@ fn main() {
 
 
             if !file_contents.is_empty() {
-                for char in file_contents.chars() {
+                let mut chars = file_contents.chars().peekable();
+                while let Some(char) = chars.next() {
                     match char {
                         '(' => {
                             println!("LEFT_PAREN {} null", char)
@@ -58,6 +59,20 @@ fn main() {
                         }
                         ';' => {
                             println!("SEMICOLON {} null", char)
+                        },
+                        '=' => {
+                            // Peek without consuming the next character.
+                            if let Some(&next_ch) = chars.peek() {
+                                if next_ch == '=' {
+                                    chars.next();
+                                    println!("EQUAL_EQUAL {} null", "==");
+                                } else {
+                                    println!("EQUAL {} null", "=");
+                                }
+                            } else {
+                                // This is the last character in the input.
+                                println!("EQUAL {} null", "=");
+                            }
                         },
                         fallback => {
                             exit_code = 65;
