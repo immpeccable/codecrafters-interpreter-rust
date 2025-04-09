@@ -5,12 +5,30 @@ use std::io::{self, Write};
 use std::iter::Peekable;
 use std::str::Chars;
 
+use anyhow::{anyhow, Result, Error};
+use std::result::Result::Ok;
+
+
+
 fn consume_until_next_line(chars: &mut Peekable<Chars>) {
     while let Some(char) = chars.next() {
         if char == '\n' {
             break;
         }
     }
+}
+
+fn consume_until_next_double_quote(chars: &mut Peekable<Chars>) -> Result<String, Error> {
+    let mut literal = String::new();
+
+    while let Some(ch) = chars.next() {
+        if ch == '"' {
+            return Ok(literal);
+        } else {
+            literal.push(ch);
+        }
+    }
+    Err(anyhow!("Unterminated string literal"))
 }
 
 fn main() {
@@ -130,6 +148,15 @@ fn main() {
                                 println!("SLASH / null");
                             }
                         },
+                        '"' => {
+                            match consume_until_next_double_quote(&mut chars) {
+                                Ok(literal) => println!("STRING \"{}\" {literal}", literal),
+                                Err(_) => {
+                                    writeln!(io::stderr(), "[line {}] Error: Unterminated string.", line).unwrap();
+                                    exit_code = 65;
+                                },
+                            }
+                        }
                         '\n' => {
                             line += 1;
                             continue;
