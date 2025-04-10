@@ -36,20 +36,28 @@ fn consume_until_next_double_quote(chars: &mut Peekable<Chars>) -> Result<String
     Err(anyhow!("Unterminated string literal"))
 }
 
-fn is_digit(ch: &char) -> bool {
-    return '0' <= *ch && *ch <= '9';
-}
-
 fn populate_number(chars: &mut Peekable<Chars>, number: &mut String) {
     let mut dot_used = false;
     while let Some(ch) = chars.peek() {
 
-        if is_digit(&ch) {
+        if ch.is_digit(10) {
             number.push(*ch);
             chars.next();
         } else if *ch == '.' && !dot_used {
             dot_used = true;
             number.push(*ch);
+            chars.next();
+        }
+        else {
+            break;
+        }
+    }
+}
+
+fn populate_identifier(chars: &mut Peekable<Chars>, identifier: &mut String) {
+    while let Some(ch) = chars.peek() {
+        if ch.is_alphabetic() || *ch == '_' || ch.is_digit(10) {
+            identifier.push(*ch);
             chars.next();
         }
         else {
@@ -190,7 +198,7 @@ fn main() {
                         }
                         '\t' | ' '  => continue,
                         fallback => {
-                            if is_digit(&fallback) {
+                            if fallback.is_digit(10) {
                                 let mut number = String::new();
                                 number.push(fallback);
                                 populate_number(&mut chars, &mut number);
@@ -206,6 +214,12 @@ fn main() {
                                 } else {
                                     println!("NUMBER {} {}", number, number);
                                 }
+                            }
+                            else if fallback.is_alphabetic() || fallback == '_' {
+                                let mut identifier = String::new();
+                                identifier.push(fallback);
+                                populate_identifier(&mut chars, &mut identifier);
+                                println!("IDENTIFIER {} null", identifier);
                             }
                             else {
                                 exit_code = 65;
