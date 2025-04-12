@@ -206,10 +206,10 @@ fn tokenize(file_contents: String) -> TokenizeResult {
             }
             fallback => {
                 if fallback.is_digit(10) {
-                    let number = get_number(&mut chars);
+                    let number_str = get_number(&mut chars);
                     tokens.push(Token {
                         token_type: TokenType::NUMBER,
-                        token_value: number,
+                        token_value: number_str,
                     });
                 } else if fallback.is_alphabetic() || *fallback == '_' {
                     if let Some(result) = get_if_reserved_keyword(&mut chars) {
@@ -310,12 +310,12 @@ fn token_printer(tokens: &[Token]) {
                 println!("STRING \"{}\" {}", token.token_value, token.token_value)
             }
             TokenType::NUMBER => {
-                // Try parsing to f32 so we can mimic the formatted output.
+                // For numbers, replicate the formatted output.
                 if let Ok(num) = token.token_value.parse::<f32>() {
                     let precision = token
                         .token_value
                         .find('.')
-                        .map(|index| token.token_value.len() - index - 1)
+                        .map(|i| token.token_value.len() - i - 1)
                         .unwrap_or(0);
                     if precision == 0 || num.fract() == 0.0 {
                         println!("NUMBER {} {:.1}", token.token_value, num);

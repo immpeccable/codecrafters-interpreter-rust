@@ -75,9 +75,15 @@ impl Parser {
         } else if self.match_tokens(&[TokenType::NUMBER, TokenType::STRING].to_vec()) {
             match self.previous() {
                 Some(token) => {
-                    return Box::new(Literal {
-                        value: LiteralValue::String(token.token_value),
-                    });
+                    if token.token_type == TokenType::STRING {
+                        return Box::new(Literal {
+                            value: LiteralValue::String(token.token_value),
+                        });
+                    } else if token.token_type == TokenType::NUMBER {
+                        return Box::new(Literal {
+                            value: LiteralValue::Number(token.token_value),
+                        });
+                    }
                 }
                 None => {}
             }
