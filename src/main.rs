@@ -61,6 +61,60 @@ pub enum TokenType {
     EOF,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum Operator {
+    EQUAL_EQUAL,   // "=="
+    BANG_EQUAL,    // "!="
+    LESS,          // "<"
+    LESS_EQUAL,    // "<="
+    GREATER,       // ">"
+    GREATER_EQUAL, // ">="
+    PLUS,          // "+"
+    MINUS,         // "-"
+    STAR,          // "*"
+    SLASH,         // "/"
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum LiteralValue {
+    Number(f64),
+    String(String),
+    True,
+    False,
+    Nil,
+}
+#[derive(Debug, Clone)]
+pub enum Expr {
+    Literal(LiteralValue),
+
+    Grouping(Box<Expr>),
+
+    Unary {
+        operator: Token,
+        right: Box<Expr>,
+    },
+
+    Binary {
+        left: Box<Expr>,
+        operator: Operator,
+        right: Box<Expr>,
+    },
+}
+#[derive(Debug, Clone)]
+pub struct Token {
+    token_type: TokenType,
+    token_value: String,
+}
+
+pub struct AST {
+    
+}
+
+struct TokenizeResult {
+    tokens: Vec<Token>,
+    exit_code: i32,
+}
+
 pub static RESERVED_KEYWORDS: &[&str] = &[
     "and", "class", "else", "false", "fun", "for", "if", "nil", "or", "print", "return", "super",
     "this", "true", "var", "while",
@@ -87,22 +141,28 @@ pub static RESERVED_KEYWORDS_MAP: Lazy<HashMap<&'static str, TokenType>> = Lazy:
     m
 });
 
+fn parse_operator(op: &str) -> Option<Operator> {
+    match op {
+        "==" => Some(Operator::EQUAL_EQUAL),
+        "!=" => Some(Operator::BANG_EQUAL),
+        "<" => Some(Operator::LESS),
+        "<=" => Some(Operator::LESS_EQUAL),
+        ">" => Some(Operator::GREATER),
+        ">=" => Some(Operator::GREATER_EQUAL),
+        "+" => Some(Operator::PLUS),
+        "-" => Some(Operator::MINUS),
+        "*" => Some(Operator::STAR),
+        "/" => Some(Operator::SLASH),
+        _ => None,
+    }
+}
+
 fn consume_until_next_line(chars: &mut Peekable<Chars>) {
     while let Some(char) = chars.next() {
         if char == '\n' {
             break;
         }
     }
-}
-
-struct TokenizeResult {
-    tokens: Vec<TokenType>,
-    exit_code: i32,
-}
-
-struct ReservedKeywordResult {
-    token: TokenType,
-    word: String,
 }
 
 fn consume_until_next_double_quote(chars: &mut Peekable<Chars>) -> Result<String, Error> {
@@ -149,7 +209,7 @@ fn get_identifier(chars: &mut Peekable<Chars>) -> String {
     return identifier;
 }
 
-fn get_if_reserved_keyword(chars: &mut Peekable<Chars>) -> Option<ReservedKeywordResult> {
+fn get_if_reserved_keyword(chars: &mut Peekable<Chars>) -> Option<Token> {
     let mut word = String::new();
     let mut cloned_chars = chars.clone();
     let mut count = 0;
@@ -168,127 +228,221 @@ fn get_if_reserved_keyword(chars: &mut Peekable<Chars>) -> Option<ReservedKeywor
     }
 
     if let Some(token) = RESERVED_KEYWORDS_MAP.get(word.as_str()).cloned() {
-        return Some(ReservedKeywordResult { token, word });
+        return Some(Token {
+            token_type: token,
+            token_value: word,
+        });
     }
     return None;
 }
 
 fn tokenize(file_contents: String) -> TokenizeResult {
     let mut chars = file_contents.chars().peekable();
-    let mut tokens: Vec<TokenType> = Vec::new();
+    let mut tokens: Vec<Token> = Vec::new();
     let mut exit_code = 0;
     let mut line = 1;
     while let Some(char) = chars.peek() {
         match char {
             '(' => {
                 println!("LEFT_PAREN {} null", char);
+                tokens.push(Token {
+                    token_type: TokenType::LEFT_PAREN,
+                    token_value: "(".to_string(),
+                });
                 chars.next();
             }
             ')' => {
                 println!("RIGHT_PAREN {} null", char);
+                tokens.push(Token {
+                    token_type: TokenType::RIGHT_PAREN,
+                    token_value: ")".to_string(),
+                });
                 chars.next();
             }
             '{' => {
                 println!("LEFT_BRACE {} null", char);
+                tokens.push(Token {
+                    token_type: TokenType::LEFT_BRACE,
+                    token_value: "{".to_string(),
+                });
                 chars.next();
             }
             '}' => {
                 println!("RIGHT_BRACE {} null", char);
+                tokens.push(Token {
+                    token_type: TokenType::RIGHT_BRACE,
+                    token_value: "}".to_string(),
+                });
                 chars.next();
             }
             '*' => {
                 println!("STAR {} null", char);
+                tokens.push(Token {
+                    token_type: TokenType::STAR,
+                    token_value: "*".to_string(),
+                });
                 chars.next();
             }
             '.' => {
                 println!("DOT {} null", char);
+                tokens.push(Token {
+                    token_type: TokenType::DOT,
+                    token_value: ".".to_string(),
+                });
                 chars.next();
             }
             ',' => {
                 println!("COMMA {} null", char);
+                tokens.push(Token {
+                    token_type: TokenType::COMMA,
+                    token_value: ",".to_string(),
+                });
                 chars.next();
             }
             '+' => {
                 println!("PLUS {} null", char);
+                tokens.push(Token {
+                    token_type: TokenType::PLUS,
+                    token_value: "+".to_string(),
+                });
                 chars.next();
             }
             '-' => {
                 println!("MINUS {} null", char);
+                tokens.push(Token {
+                    token_type: TokenType::MINUS,
+                    token_value: "-".to_string(),
+                });
                 chars.next();
             }
             ';' => {
-                println!("SEMICOLON {} null", char);
+                tokens.push(Token {
+                    token_type: TokenType::SEMICOLON,
+                    token_value: ";".to_string(),
+                });
                 chars.next();
             }
             '=' => {
+                // Consume '='
                 chars.next();
-                if let Some(&next_ch) = chars.peek() {
-                    if next_ch == '=' {
-                        chars.next();
-                        println!("EQUAL_EQUAL {} null", "==");
-                    } else {
-                        println!("EQUAL {} null", "=");
+                let token = if chars.peek() == Some(&'=') {
+                    // Consume the second '=' and create the dual token.
+                    chars.next();
+                    Token {
+                        token_type: TokenType::EQUAL_EQUAL,
+                        token_value: "==".to_string(),
                     }
                 } else {
-                    println!("EQUAL {} null", "=");
-                }
+                    Token {
+                        token_type: TokenType::EQUAL,
+                        token_value: "=".to_string(),
+                    }
+                };
+                tokens.push(token);
+                // Print using the token we just pushed.
+                println!(
+                    "{:?} {} null",
+                    tokens.last().unwrap().token_type,
+                    tokens.last().unwrap().token_value
+                );
             }
+
             '!' => {
                 chars.next();
-                if let Some(&next_ch) = chars.peek() {
-                    if next_ch == '=' {
-                        chars.next();
-                        println!("BANG_EQUAL != null");
-                    } else {
-                        println!("BANG ! null");
+                let token = if chars.peek() == Some(&'=') {
+                    chars.next();
+                    Token {
+                        token_type: TokenType::BANG_EQUAL,
+                        token_value: "!=".to_string(),
                     }
                 } else {
-                    println!("BANG ! null");
-                }
+                    Token {
+                        token_type: TokenType::BANG,
+                        token_value: "!".to_string(),
+                    }
+                };
+                tokens.push(token);
+                println!(
+                    "{:?} {} null",
+                    tokens.last().unwrap().token_type,
+                    tokens.last().unwrap().token_value
+                );
             }
+
             '<' => {
                 chars.next();
-                if let Some(&next_ch) = chars.peek() {
-                    if next_ch == '=' {
-                        chars.next();
-                        println!("LESS_EQUAL <= null");
-                    } else {
-                        println!("LESS < null");
+                let token = if chars.peek() == Some(&'=') {
+                    chars.next();
+                    Token {
+                        token_type: TokenType::LESS_EQUAL,
+                        token_value: "<=".to_string(),
                     }
                 } else {
-                    println!("LESS < null");
-                }
+                    Token {
+                        token_type: TokenType::LESS,
+                        token_value: "<".to_string(),
+                    }
+                };
+                tokens.push(token);
+                println!(
+                    "{:?} {} null",
+                    tokens.last().unwrap().token_type,
+                    tokens.last().unwrap().token_value
+                );
             }
+
             '>' => {
+                // Consume '>'
                 chars.next();
-                if let Some(&next_ch) = chars.peek() {
-                    if next_ch == '=' {
-                        chars.next();
-                        println!("GREATER_EQUAL >= null");
-                    } else {
-                        println!("GREATER > null");
+                let token = if chars.peek() == Some(&'=') {
+                    chars.next();
+                    Token {
+                        token_type: TokenType::GREATER_EQUAL,
+                        token_value: ">=".to_string(),
                     }
                 } else {
-                    println!("GREATER > null");
-                }
+                    Token {
+                        token_type: TokenType::GREATER,
+                        token_value: ">".to_string(),
+                    }
+                };
+                tokens.push(token);
+                println!(
+                    "{:?} {} null",
+                    tokens.last().unwrap().token_type,
+                    tokens.last().unwrap().token_value
+                );
             }
             '/' => {
                 chars.next();
-                if let Some(&next_ch) = chars.peek() {
-                    if next_ch == '/' {
-                        consume_until_next_line(&mut chars);
-                        line += 1
-                    } else {
-                        println!("SLASH / null");
-                    }
+                if chars.peek() == Some(&'/') {
+                    chars.next(); // Consume the second '/'
+                    consume_until_next_line(&mut chars);
+                    line += 1;
                 } else {
-                    println!("SLASH / null");
+                    let token = Token {
+                        token_type: TokenType::SLASH,
+                        token_value: "/".to_string(),
+                    };
+                    tokens.push(token);
+                    println!(
+                        "{:?} {} null",
+                        tokens.last().unwrap().token_type,
+                        tokens.last().unwrap().token_value
+                    );
                 }
             }
             '"' => {
                 chars.next();
                 match consume_until_next_double_quote(&mut chars) {
-                    Ok(literal) => println!("STRING \"{}\" {literal}", literal),
+                    Ok(literal) => {
+                        let token = Token {
+                            token_type: TokenType::STRING,
+                            token_value: literal.clone(),
+                        };
+                        tokens.push(token);
+                        println!("STRING \"{}\" {literal}", literal)
+                    }
                     Err(_) => {
                         writeln!(io::stderr(), "[line {}] Error: Unterminated string.", line)
                             .unwrap();
@@ -318,15 +472,30 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                     } else {
                         println!("NUMBER {} {}", number, number);
                     }
+                    let token = Token {
+                        token_type: TokenType::NUMBER,
+                        token_value: number,
+                    };
+                    tokens.push(token);
                 } else if fallback.is_alphabetic() || *fallback == '_' {
                     if let Some(result) = get_if_reserved_keyword(&mut chars) {
-                        println!("{} {} null", result.word.to_uppercase(), result.word);
-                        for _ in 0..result.word.len() {
+                        println!(
+                            "{} {} null",
+                            result.token_value.to_uppercase(),
+                            result.token_value
+                        );
+                        for _ in 0..result.token_value.len() {
                             chars.next();
                         }
+                        tokens.push(result);
                     } else {
                         let identifier = get_identifier(&mut chars);
                         println!("IDENTIFIER {} null", identifier);
+                        let token = Token {
+                            token_type: TokenType::IDENTIFIER,
+                            token_value: identifier,
+                        };
+                        tokens.push(token);
                     }
                 } else {
                     exit_code = 65;
@@ -342,7 +511,6 @@ fn tokenize(file_contents: String) -> TokenizeResult {
             }
         }
     }
-    tokens.push(TokenType::EOF);
     print!("EOF  null");
     return TokenizeResult { tokens, exit_code };
 }
