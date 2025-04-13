@@ -59,7 +59,7 @@ pub fn get_identifier(chars: &mut Peekable<Chars>) -> String {
     return identifier;
 }
 
-pub fn get_if_reserved_keyword(chars: &mut Peekable<Chars>) -> Option<Token> {
+pub fn get_if_reserved_keyword(chars: &mut Peekable<Chars>, line: u32) -> Option<Token> {
     let mut word = String::new();
     let mut cloned_chars = chars.clone();
     let mut count = 0;
@@ -81,6 +81,7 @@ pub fn get_if_reserved_keyword(chars: &mut Peekable<Chars>) -> Option<Token> {
         return Some(Token {
             token_type: token,
             token_value: word,
+            line,
         });
     }
     return None;

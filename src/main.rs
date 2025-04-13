@@ -38,6 +38,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                 tokens.push(Token {
                     token_type: TokenType::LEFT_PAREN,
                     token_value: "(".to_string(),
+                    line,
                 });
                 chars.next();
             }
@@ -45,6 +46,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                 tokens.push(Token {
                     token_type: TokenType::RIGHT_PAREN,
                     token_value: ")".to_string(),
+                    line,
                 });
                 chars.next();
             }
@@ -52,6 +54,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                 tokens.push(Token {
                     token_type: TokenType::LEFT_BRACE,
                     token_value: "{".to_string(),
+                    line,
                 });
                 chars.next();
             }
@@ -59,6 +62,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                 tokens.push(Token {
                     token_type: TokenType::RIGHT_BRACE,
                     token_value: "}".to_string(),
+                    line,
                 });
                 chars.next();
             }
@@ -66,6 +70,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                 tokens.push(Token {
                     token_type: TokenType::STAR,
                     token_value: "*".to_string(),
+                    line,
                 });
                 chars.next();
             }
@@ -73,6 +78,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                 tokens.push(Token {
                     token_type: TokenType::DOT,
                     token_value: ".".to_string(),
+                    line,
                 });
                 chars.next();
             }
@@ -80,6 +86,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                 tokens.push(Token {
                     token_type: TokenType::COMMA,
                     token_value: ",".to_string(),
+                    line,
                 });
                 chars.next();
             }
@@ -87,6 +94,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                 tokens.push(Token {
                     token_type: TokenType::PLUS,
                     token_value: "+".to_string(),
+                    line,
                 });
                 chars.next();
             }
@@ -94,6 +102,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                 tokens.push(Token {
                     token_type: TokenType::MINUS,
                     token_value: "-".to_string(),
+                    line,
                 });
                 chars.next();
             }
@@ -101,6 +110,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                 tokens.push(Token {
                     token_type: TokenType::SEMICOLON,
                     token_value: ";".to_string(),
+                    line,
                 });
                 chars.next();
             }
@@ -111,11 +121,13 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                     Token {
                         token_type: TokenType::EQUAL_EQUAL,
                         token_value: "==".to_string(),
+                        line,
                     }
                 } else {
                     Token {
                         token_type: TokenType::EQUAL,
                         token_value: "=".to_string(),
+                        line,
                     }
                 };
                 tokens.push(token);
@@ -127,11 +139,13 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                     Token {
                         token_type: TokenType::BANG_EQUAL,
                         token_value: "!=".to_string(),
+                        line,
                     }
                 } else {
                     Token {
                         token_type: TokenType::BANG,
                         token_value: "!".to_string(),
+                        line,
                     }
                 };
                 tokens.push(token);
@@ -143,11 +157,13 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                     Token {
                         token_type: TokenType::LESS_EQUAL,
                         token_value: "<=".to_string(),
+                        line,
                     }
                 } else {
                     Token {
                         token_type: TokenType::LESS,
                         token_value: "<".to_string(),
+                        line,
                     }
                 };
                 tokens.push(token);
@@ -159,11 +175,13 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                     Token {
                         token_type: TokenType::GREATER_EQUAL,
                         token_value: ">=".to_string(),
+                        line,
                     }
                 } else {
                     Token {
                         token_type: TokenType::GREATER,
                         token_value: ">".to_string(),
+                        line,
                     }
                 };
                 tokens.push(token);
@@ -178,6 +196,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                     tokens.push(Token {
                         token_type: TokenType::SLASH,
                         token_value: "/".to_string(),
+                        line,
                     });
                 }
             }
@@ -188,6 +207,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                         tokens.push(Token {
                             token_type: TokenType::STRING,
                             token_value: literal,
+                            line,
                         });
                     }
                     Err(_) => {
@@ -210,9 +230,10 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                     tokens.push(Token {
                         token_type: TokenType::NUMBER,
                         token_value: number_str,
+                        line,
                     });
                 } else if fallback.is_alphabetic() || *fallback == '_' {
-                    if let Some(result) = get_if_reserved_keyword(&mut chars) {
+                    if let Some(result) = get_if_reserved_keyword(&mut chars, line) {
                         for _ in 0..result.token_value.len() {
                             chars.next();
                         }
@@ -222,6 +243,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
                         tokens.push(Token {
                             token_type: TokenType::IDENTIFIER,
                             token_value: identifier,
+                            line,
                         });
                     }
                 } else {
@@ -241,6 +263,7 @@ fn tokenize(file_contents: String) -> TokenizeResult {
     tokens.push(Token {
         token_type: TokenType::EOF,
         token_value: "EOF".to_string(),
+        line,
     });
     TokenizeResult { tokens, exit_code }
 }
@@ -388,9 +411,14 @@ fn main() {
                 tokens: result.tokens,
                 current: 0,
             };
-            let expression = parser.expression();
-            let string_representation = expression.accept();
-            println!("{}", string_representation);
+            let parser_result = parser.expression();
+            match parser_result {
+                Ok(expr) => {
+                    let string_representation = expr.accept();
+                    println!("{}", string_representation);
+                }
+                Err(err) => exit(65),
+            }
         }
         _ => {
             writeln!(io::stderr(), "Unknown command: {}", command).unwrap();

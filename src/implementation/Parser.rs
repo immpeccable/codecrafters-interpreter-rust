@@ -1,3 +1,6 @@
+use std::io::{self, Write};
+use std::result::Result::{Err, Ok};
+
 use crate::enums::LiteralValue::LiteralValue;
 use crate::enums::TokenType::TokenType;
 use crate::implementation::BinaryExpression::BinaryExpression;
@@ -52,127 +55,195 @@ impl Parser {
         return self.previous();
     }
 
-    fn consume(&mut self, token_type: TokenType, message: &'static str) -> Option<Token> {
-        if self.check(token_type) {
-            return self.advance();
+    fn error(&self, token: Token, message: String) {
+        match token.token_type {
+            TokenType::EOF => writeln!(
+                io::stderr(),
+                "[line {}] Error at end: {}",
+                token.line,
+                message
+            )
+            .unwrap(),
+            _ => writeln!(
+                io::stderr(),
+                "[line {}] Error at '{}': {}",
+                token.line,
+                token.token_value,
+                message
+            )
+            .unwrap(),
         }
-        panic!("{:?} {}", self.peek().unwrap(), message);
     }
 
-    fn primary(&mut self) -> Box<dyn Expression> {
+    fn consume(&mut self, token_type: TokenType, message: String) -> Result<Token, String> {
+        if self.check(token_type) {
+            match self.advance() {
+                Some(token) => return Ok(token),
+                None => panic!("What is going on!!"),
+            }
+        }
+
+        self.error(self.peek().unwrap(), message);
+        return Err("An error occurred while consuming".to_string());
+    }
+
+    fn primary(&mut self) -> Result<Box<dyn Expression>, String> {
         if self.match_tokens(&[TokenType::FALSE].to_vec()) {
-            return Box::new(Literal {
+            return Ok(Box::new(Literal {
                 value: LiteralValue::False,
-            });
+            }));
         } else if self.match_tokens(&[TokenType::TRUE].to_vec()) {
-            return Box::new(Literal {
+            return Ok(Box::new(Literal {
                 value: LiteralValue::True,
-            });
+            }));
         } else if self.match_tokens(&[TokenType::NIL].to_vec()) {
-            return Box::new(Literal {
+            return Ok(Box::new(Literal {
                 value: LiteralValue::Nil,
-            });
-        } else if self.match_tokens(&[TokenType::NUMBER, TokenType::STRING].to_vec()) {
-            match self.previous() {
-                Some(token) => {
-                    if token.token_type == TokenType::STRING {
-                        return Box::new(Literal {
-                            value: LiteralValue::String(token.token_value),
-                        });
-                    } else if token.token_type == TokenType::NUMBER {
-                        return Box::new(Literal {
-                            value: LiteralValue::Number(token.token_value),
-                        });
+            }));
+        } else if self.match_tokens(&[TokenType::STRING].to_vec()) {
+            let token = self.previous().unwrap();
+            return Ok(Box::new(Literal {
+                value: LiteralValue::String(token.token_value),
+            }));
+        } else if self.match_tokens(&[TokenType::NUMBER].to_vec()) {
+            let token = self.previous().unwrap();
+            return Ok(Box::new(Literal {
+                value: LiteralValue::Number(token.token_value),
+            }));
+        } else if self.match_tokens(&[TokenType::LEFT_PAREN].to_vec()) {
+            match self.expression() {
+                Ok(expression) => {
+                    match self.consume(
+                        TokenType::RIGHT_PAREN,
+                        "Expect ')' after expression.".to_string(),
+                    ) {
+                        Ok(token) => Ok(Box::new(Grouping { expression })),
+                        Err(error) => Err(error),
                     }
                 }
-                None => {}
+                Err(err) => Err(err),
             }
-        } else if self.match_tokens(&[TokenType::LEFT_PAREN].to_vec()) {
-            let expression = self.expression();
-            self.consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
-            return Box::new(Grouping { expression });
+        } else {
+            let token = self.peek().unwrap();
+            self.error(token, "Expect expression.".to_string());
+            return Err("Expect expression.".to_string());
         }
-        panic!("WTF is going on");
     }
 
-    fn unary(&mut self) -> Box<dyn Expression> {
+    fn unary(&mut self) -> Result<Box<dyn Expression>, String> {
         if self.match_tokens(&[TokenType::BANG, TokenType::MINUS].to_vec()) {
             let operator = self.previous();
-            let right = self.unary();
-            return Box::new(UnaryExpression {
-                operator: operator.unwrap(),
-                expression: right,
-            });
+            match self.unary() {
+                Ok(right) => {
+                    return Ok(Box::new(UnaryExpression {
+                        operator: operator.unwrap(),
+                        expression: right,
+                    }))
+                }
+                Err(error) => return Err(error),
+            }
         }
         return self.primary();
     }
 
-    fn factor(&mut self) -> Box<dyn Expression> {
-        let mut expression = self.unary();
-        while self.match_tokens(&[TokenType::SLASH, TokenType::STAR].to_vec()) {
-            let operator = self.previous();
-            let right = self.unary();
-            expression = Box::new(BinaryExpression {
-                left: expression,
-                operator: operator.unwrap(),
-                right,
-            })
+    fn factor(&mut self) -> Result<Box<dyn Expression>, String> {
+        match self.unary() {
+            Ok(mut expression) => {
+                while self.match_tokens(&[TokenType::SLASH, TokenType::STAR].to_vec()) {
+                    let operator = self.previous().unwrap();
+                    match self.unary() {
+                        Ok(right) => {
+                            expression = Box::new(BinaryExpression {
+                                left: expression,
+                                operator,
+                                right,
+                            })
+                        }
+                        Err(error) => return Err(error),
+                    }
+                }
+                return Ok(expression);
+            }
+            Err(err) => Err(err),
         }
-        return expression;
     }
 
-    fn term(&mut self) -> Box<dyn Expression> {
-        let mut expression = self.factor();
-        while self.match_tokens(&[TokenType::MINUS, TokenType::PLUS].to_vec()) {
-            let operator = self.previous();
-            let right = self.factor();
-            expression = Box::new(BinaryExpression {
-                left: expression,
-                operator: operator.unwrap(),
-                right,
-            })
+    fn term(&mut self) -> Result<Box<dyn Expression>, String> {
+        match self.factor() {
+            Ok(mut expression) => {
+                while self.match_tokens(&[TokenType::MINUS, TokenType::PLUS].to_vec()) {
+                    let operator = self.previous().unwrap();
+                    match self.factor() {
+                        Ok(right) => {
+                            expression = Box::new(BinaryExpression {
+                                left: expression,
+                                operator,
+                                right,
+                            })
+                        }
+                        Err(err) => return Err(err),
+                    }
+                }
+                return Ok(expression);
+            }
+            Err(err) => Err(err),
         }
-        return expression;
     }
 
-    fn comparison(&mut self) -> Box<dyn Expression> {
-        let mut expression = self.term();
-        while self.match_tokens(
-            &[
-                TokenType::LESS,
-                TokenType::LESS_EQUAL,
-                TokenType::GREATER,
-                TokenType::GREATER_EQUAL,
-            ]
-            .to_vec(),
-        ) {
-            let operator = self.previous();
-            let right = self.term();
-            expression = Box::new(BinaryExpression {
-                left: expression,
-                operator: operator.unwrap(),
-                right,
-            })
+    fn comparison(&mut self) -> Result<Box<dyn Expression>, String> {
+        match self.term() {
+            Ok(mut expression) => {
+                while self.match_tokens(
+                    &[
+                        TokenType::LESS,
+                        TokenType::LESS_EQUAL,
+                        TokenType::GREATER,
+                        TokenType::GREATER_EQUAL,
+                    ]
+                    .to_vec(),
+                ) {
+                    let operator = self.previous().unwrap();
+                    match self.term() {
+                        Ok(right) => {
+                            expression = Box::new(BinaryExpression {
+                                left: expression,
+                                operator,
+                                right,
+                            })
+                        }
+                        Err(err) => return Err(err),
+                    }
+                }
+                return Ok(expression);
+            }
+            Err(err) => Err(err),
         }
-        return expression;
     }
 
-    fn equality(&mut self) -> Box<dyn Expression> {
-        let mut expression = self.comparison();
-        while self.match_tokens(&[TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL].to_vec()) {
-            let operator = self.previous();
-            let right = self.comparison();
-            expression = Box::new(BinaryExpression {
-                left: expression,
-                operator: operator.unwrap(),
-                right,
-            })
-        }
+    fn equality(&mut self) -> Result<Box<dyn Expression>, String> {
+        match self.comparison() {
+            Ok(mut expression) => {
+                while self.match_tokens(&[TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL].to_vec()) {
+                    let operator = self.previous().unwrap();
+                    match self.comparison() {
+                        Ok(right) => {
+                            expression = Box::new(BinaryExpression {
+                                left: expression,
+                                operator,
+                                right,
+                            })
+                        }
+                        Err(err) => return Err(err),
+                    }
+                }
 
-        return expression;
+                return Ok(expression);
+            }
+            Err(err) => Err(err),
+        }
     }
 
-    pub fn expression(&mut self) -> Box<dyn Expression> {
+    pub fn expression(&mut self) -> Result<Box<dyn Expression>, String> {
         return self.equality();
     }
 }
