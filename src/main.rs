@@ -11,6 +11,7 @@ mod implementation;
 mod traits;
 mod utils;
 
+use enums::LiteralValue::LiteralValue;
 use utils::index::{
     consume_until_next_double_quote, consume_until_next_line, get_identifier,
     get_if_reserved_keyword, get_number,
@@ -429,8 +430,13 @@ fn main() {
             let parser_result = parser.expression();
             match parser_result {
                 Ok(expr) => {
-                    let string_representation = expr.interpret().unwrap();
-                    println!("{}", string_representation.to_string());
+                    let literal_value = expr.interpret().unwrap();
+                    match literal_value {
+                        LiteralValue::Number(n) => {
+                            println!("{}", n.parse::<f64>().unwrap());
+                        }
+                        _ => println!("{}", literal_value.to_string()),
+                    }
                 }
                 Err(err) => exit(65),
             }
