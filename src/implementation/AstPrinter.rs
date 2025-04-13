@@ -2,14 +2,14 @@ use crate::implementation::BinaryExpression::BinaryExpression;
 use crate::implementation::Grouping::Grouping;
 use crate::implementation::Literal::Literal;
 use crate::implementation::UnaryExpression::UnaryExpression;
+use crate::traits::AstPrinter::AstPrinterTrait;
 use crate::traits::Expression::Expression;
-use crate::traits::ExpressionVisitor::ExpressionVisitor;
 
 pub struct AstPrinter {}
 
-impl ExpressionVisitor for AstPrinter {
+impl AstPrinterTrait for AstPrinter {
     fn print(&self, expression: &Box<dyn Expression>) -> String {
-        return expression.accept();
+        return expression.expression_print();
     }
     fn visit_binary_expression(&self, expression: &BinaryExpression) -> String {
         return self.paranthesize(
@@ -38,7 +38,7 @@ impl ExpressionVisitor for AstPrinter {
         result.push_str(&name);
         for expression in expressions {
             result.push_str(" ");
-            result.push_str(expression.accept().as_str());
+            result.push_str(expression.expression_print().as_str());
         }
         result.push_str(")");
         return result;

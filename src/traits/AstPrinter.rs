@@ -4,7 +4,7 @@ use crate::implementation::Literal::Literal;
 use crate::implementation::UnaryExpression::UnaryExpression;
 use crate::traits::Expression::Expression;
 
-pub trait ExpressionVisitor {
+pub trait AstPrinterTrait {
     fn print(&self, expression: &Box<dyn Expression>) -> String;
     fn visit_binary_expression(&self, expression: &BinaryExpression) -> String;
     fn visit_unary_expression(&self, expression: &UnaryExpression) -> String;

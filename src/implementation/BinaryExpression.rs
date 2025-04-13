@@ -1,7 +1,11 @@
+use crate::enums::LiteralValue::LiteralValue;
 use crate::implementation::AstPrinter::AstPrinter;
 use crate::implementation::Token::Token;
+use crate::traits::AstPrinter::AstPrinterTrait;
 use crate::traits::Expression::Expression;
-use crate::traits::ExpressionVisitor::ExpressionVisitor;
+use crate::traits::Interpreter::InterpreterTrait;
+
+use super::Interpreter::Interpreter;
 
 pub struct BinaryExpression {
     pub left: Box<dyn Expression>,
@@ -10,8 +14,12 @@ pub struct BinaryExpression {
 }
 
 impl Expression for BinaryExpression {
-    fn accept(&self) -> String {
+    fn expression_print(&self) -> String {
         let visitor = AstPrinter {};
+        return visitor.visit_binary_expression(self);
+    }
+    fn interpret(&self) -> Result<LiteralValue, String> {
+        let visitor = Interpreter {};
         return visitor.visit_binary_expression(self);
     }
 }

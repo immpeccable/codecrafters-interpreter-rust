@@ -414,8 +414,23 @@ fn main() {
             let parser_result = parser.expression();
             match parser_result {
                 Ok(expr) => {
-                    let string_representation = expr.accept();
+                    let string_representation = expr.expression_print();
                     println!("{}", string_representation);
+                }
+                Err(err) => exit(65),
+            }
+        }
+        "evaluate" => {
+            let result = tokenize(file_contents);
+            let mut parser = Parser {
+                tokens: result.tokens,
+                current: 0,
+            };
+            let parser_result = parser.expression();
+            match parser_result {
+                Ok(expr) => {
+                    let string_representation = expr.interpret().unwrap();
+                    println!("{}", string_representation.to_string());
                 }
                 Err(err) => exit(65),
             }
