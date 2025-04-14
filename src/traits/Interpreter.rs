@@ -16,6 +16,6 @@ pub trait InterpreterTrait {
     fn visit_grouping(&self, expression: &Grouping) -> Result<LiteralValue, String>;
     fn visit_literal(&self, expression: &Literal) -> Result<LiteralValue, String>;
     fn evaluate(&self, expression: &Box<dyn Expression>) -> Result<LiteralValue, String>;
-    fn is_truthy(&self, expression: LiteralValue) -> bool;
-    fn is_equal(&self, left: LiteralValue, right: LiteralValue) -> bool;
+    fn is_truthy(&self, expression: &LiteralValue) -> bool;
+    fn is_equal(&self, left: &LiteralValue, right: &LiteralValue) -> bool;
 }
