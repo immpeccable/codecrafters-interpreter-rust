@@ -68,9 +68,15 @@ impl InterpreterTrait for Interpreter {
 
         match expression.operator.token_type {
             TokenType::MINUS => {
-                let left_num = parse_f64(&left_str)?;
-                let right_num = parse_f64(&right_str)?;
-                Ok(LiteralValue::Number((left_num - right_num).to_string()))
+                if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
+                {
+                    Ok(LiteralValue::Number((left_num - right_num).to_string()))
+                } else {
+                    Err(self.error(
+                        String::from("Operands must be numbers."),
+                        &expression.operator,
+                    ))
+                }
             }
             TokenType::PLUS => {
                 if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
@@ -81,28 +87,40 @@ impl InterpreterTrait for Interpreter {
                 }
             }
             TokenType::STAR => {
-                let left_num = parse_f64(&left_str)?;
-                let right_num = parse_f64(&right_str)?;
-                Ok(LiteralValue::Number((left_num * right_num).to_string()))
+                if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
+                {
+                    Ok(LiteralValue::Number((left_num * right_num).to_string()))
+                } else {
+                    Err(self.error(
+                        String::from("Operands must be numbers."),
+                        &expression.operator,
+                    ))
+                }
             }
             TokenType::SLASH => {
-                let left_num = parse_f64(&left_str)?;
-                let right_num = parse_f64(&right_str)?;
-                Ok(LiteralValue::Number((left_num / right_num).to_string()))
+                if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
+                {
+                    Ok(LiteralValue::Number((left_num / right_num).to_string()))
+                } else {
+                    Err(self.error(
+                        String::from("Operands must be numbers."),
+                        &expression.operator,
+                    ))
+                }
             }
             TokenType::GREATER => {
-                let left_num = parse_f64(&left_str)?;
-                let right_num = parse_f64(&right_str)?;
+                let left_num = parse_f64(&left_str);
+                let right_num = parse_f64(&right_str);
                 Ok(LiteralValue::Boolean(left_num > right_num))
             }
             TokenType::GREATER_EQUAL => {
-                let left_num = parse_f64(&left_str)?;
-                let right_num = parse_f64(&right_str)?;
+                let left_num = parse_f64(&left_str);
+                let right_num = parse_f64(&right_str);
                 Ok(LiteralValue::Boolean(left_num >= right_num))
             }
             TokenType::LESS => {
-                let left_num = parse_f64(&left_str)?;
-                let right_num = parse_f64(&right_str)?;
+                let left_num = parse_f64(&left_str);
+                let right_num = parse_f64(&right_str);
                 Ok(LiteralValue::Boolean(left_num < right_num))
             }
             TokenType::LESS_EQUAL => {
