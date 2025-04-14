@@ -1,4 +1,8 @@
 use core::panic;
+use std::{
+    io::{self, Write},
+    process::exit,
+};
 
 use crate::{
     enums::{LiteralValue::LiteralValue, TokenType::TokenType},
@@ -6,13 +10,19 @@ use crate::{
 };
 
 use super::{
-    BinaryExpression::BinaryExpression, Grouping::Grouping, Literal::Literal,
+    BinaryExpression::BinaryExpression, Grouping::Grouping, Literal::Literal, Token::Token,
     UnaryExpression::UnaryExpression,
 };
 
 pub struct Interpreter {}
 
 impl InterpreterTrait for Interpreter {
+    fn error(&self, message: String, token: &Token) -> String {
+        writeln!(io::stderr(), "{}", message).unwrap();
+        writeln!(io::stderr(), "[line {}]", token.line).unwrap();
+        exit(70);
+    }
+
     fn is_equal(&self, left: &LiteralValue, right: &LiteralValue) -> bool {
         match left {
             LiteralValue::Boolean(left_val) => match right {
@@ -125,7 +135,10 @@ impl InterpreterTrait for Interpreter {
                     let right_number = number.parse::<f64>().unwrap();
                     return Ok(LiteralValue::Number((-1.0 * right_number).to_string()));
                 }
-                _ => panic!("Invalid operator for minus"),
+                _ => Err(self.error(
+                    String::from("Operand must be a number."),
+                    &expression.operator,
+                )),
             },
             TokenType::BANG => {
                 return Ok(LiteralValue::Boolean(!self.is_truthy(&right)));
