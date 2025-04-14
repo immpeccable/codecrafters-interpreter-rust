@@ -78,14 +78,31 @@ impl InterpreterTrait for Interpreter {
                     ))
                 }
             }
-            TokenType::PLUS => {
-                if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
-                {
-                    Ok(LiteralValue::Number((left_num + right_num).to_string()))
-                } else {
-                    Ok(LiteralValue::String(format!("{}{}", left_str, right_str)))
-                }
-            }
+            TokenType::PLUS => match left_val {
+                LiteralValue::String(left_str) => match right_val {
+                    LiteralValue::String(right_str) => {
+                        Ok(LiteralValue::String(format!("{}{}", left_str, right_str)))
+                    }
+                    _ => Err(self.error(
+                        String::from("Operands must be two numbers or two strings"),
+                        &expression.operator,
+                    )),
+                },
+                LiteralValue::Number(left_num) => match right_val {
+                    LiteralValue::Number(right_num) => Ok(LiteralValue::Number(
+                        (parse_f64(&left_num).unwrap() + parse_f64(&right_num).unwrap())
+                            .to_string(),
+                    )),
+                    _ => Err(self.error(
+                        String::from("Operands must be two numbers or two strings"),
+                        &expression.operator,
+                    )),
+                },
+                _ => Err(self.error(
+                    String::from("Operands must be two numbers or two strings"),
+                    &expression.operator,
+                )),
+            },
             TokenType::STAR => {
                 if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
                 {
