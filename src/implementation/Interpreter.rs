@@ -84,7 +84,10 @@ impl InterpreterTrait for Interpreter {
                 }
                 (LiteralValue::Number(left_num), LiteralValue::Number(right_num)) => {
                     let left_f = parse_f64(&left_num).map_err(|_| {
-                        self.error(String::from("Operands must be numbers"),, &expression.operator)
+                        self.error(
+                            String::from("Operands must be numbers"),
+                            &expression.operator,
+                        )
                     })?;
                     let right_f = parse_f64(&right_num).map_err(|_| {
                         self.error(
