@@ -90,11 +90,11 @@ impl Parser {
     fn primary(&mut self) -> Result<Box<dyn Expression>, String> {
         if self.match_tokens(&[TokenType::FALSE].to_vec()) {
             return Ok(Box::new(Literal {
-                value: LiteralValue::False,
+                value: LiteralValue::Boolean(false),
             }));
         } else if self.match_tokens(&[TokenType::TRUE].to_vec()) {
             return Ok(Box::new(Literal {
-                value: LiteralValue::True,
+                value: LiteralValue::Boolean(true),
             }));
         } else if self.match_tokens(&[TokenType::NIL].to_vec()) {
             return Ok(Box::new(Literal {

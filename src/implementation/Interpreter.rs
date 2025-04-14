@@ -19,8 +19,8 @@ impl InterpreterTrait for Interpreter {
 
     fn is_truthy(&self, object: LiteralValue) -> bool {
         match object {
-            LiteralValue::False => return false,
             LiteralValue::Nil => return false,
+            LiteralValue::Boolean(val) => return val,
             _ => return true,
         }
     }
@@ -66,38 +66,22 @@ impl InterpreterTrait for Interpreter {
             TokenType::GREATER => {
                 let left_num = parse_f64(&left_str)?;
                 let right_num = parse_f64(&right_str)?;
-                Ok(if left_num > right_num {
-                    LiteralValue::True
-                } else {
-                    LiteralValue::False
-                })
+                Ok(LiteralValue::Boolean(left_num > right_num))
             }
             TokenType::GREATER_EQUAL => {
                 let left_num = parse_f64(&left_str)?;
                 let right_num = parse_f64(&right_str)?;
-                Ok(if left_num >= right_num {
-                    LiteralValue::True
-                } else {
-                    LiteralValue::False
-                })
+                Ok(LiteralValue::Boolean(left_num >= right_num))
             }
             TokenType::LESS => {
                 let left_num = parse_f64(&left_str)?;
                 let right_num = parse_f64(&right_str)?;
-                Ok(if left_num < right_num {
-                    LiteralValue::True
-                } else {
-                    LiteralValue::False
-                })
+                Ok(LiteralValue::Boolean(left_num < right_num))
             }
             TokenType::LESS_EQUAL => {
                 let left_num = parse_f64(&left_str)?;
                 let right_num = parse_f64(&right_str)?;
-                Ok(if left_num <= right_num {
-                    LiteralValue::True
-                } else {
-                    LiteralValue::False
-                })
+                Ok(LiteralValue::Boolean(left_num <= right_num))
             }
             TokenType::EQUAL_EQUAL => {
                 if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
@@ -153,12 +137,7 @@ impl InterpreterTrait for Interpreter {
                 _ => panic!("Invalid operator for minus"),
             },
             TokenType::BANG => {
-                let is_truthy = self.is_truthy(right);
-                if is_truthy {
-                    return Ok(LiteralValue::False);
-                } else {
-                    return Ok(LiteralValue::True);
-                }
+                return Ok(LiteralValue::Boolean(!self.is_truthy(right)));
             }
             op => panic!("Unexpected unary operator: {:?}", op),
         }

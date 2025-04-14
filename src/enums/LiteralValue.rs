@@ -2,9 +2,8 @@ use std::fmt;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum LiteralValue {
-    True,
-    False,
     Nil,
+    Boolean(bool),
     Number(String), // Number stored as a string.
     String(String),
 }
@@ -12,8 +11,7 @@ pub enum LiteralValue {
 impl fmt::Display for LiteralValue {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            LiteralValue::True => write!(f, "true"),
-            LiteralValue::False => write!(f, "false"),
+            LiteralValue::Boolean(val) => write!(f, "{}", val),
             LiteralValue::Nil => write!(f, "nil"),
             LiteralValue::String(s) => write!(f, "{}", s),
             LiteralValue::Number(s) => {
