@@ -126,24 +126,48 @@ impl InterpreterTrait for Interpreter {
                 }
             }
             TokenType::GREATER => {
-                let left_num = parse_f64(&left_str);
-                let right_num = parse_f64(&right_str);
-                Ok(LiteralValue::Boolean(left_num > right_num))
+                if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
+                {
+                    Ok(LiteralValue::Boolean(left_num > right_num))
+                } else {
+                    Err(self.error(
+                        String::from("Operands must be numbers."),
+                        &expression.operator,
+                    ))
+                }
             }
             TokenType::GREATER_EQUAL => {
-                let left_num = parse_f64(&left_str);
-                let right_num = parse_f64(&right_str);
-                Ok(LiteralValue::Boolean(left_num >= right_num))
+                if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
+                {
+                    Ok(LiteralValue::Boolean(left_num >= right_num))
+                } else {
+                    Err(self.error(
+                        String::from("Operands must be numbers."),
+                        &expression.operator,
+                    ))
+                }
             }
             TokenType::LESS => {
-                let left_num = parse_f64(&left_str);
-                let right_num = parse_f64(&right_str);
-                Ok(LiteralValue::Boolean(left_num < right_num))
+                if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
+                {
+                    Ok(LiteralValue::Boolean(left_num < right_num))
+                } else {
+                    Err(self.error(
+                        String::from("Operands must be numbers."),
+                        &expression.operator,
+                    ))
+                }
             }
             TokenType::LESS_EQUAL => {
-                let left_num = parse_f64(&left_str)?;
-                let right_num = parse_f64(&right_str)?;
-                Ok(LiteralValue::Boolean(left_num <= right_num))
+                if let (Ok(left_num), Ok(right_num)) = (parse_f64(&left_str), parse_f64(&right_str))
+                {
+                    Ok(LiteralValue::Boolean(left_num <= right_num))
+                } else {
+                    Err(self.error(
+                        String::from("Operands must be numbers."),
+                        &expression.operator,
+                    ))
+                }
             }
             TokenType::EQUAL_EQUAL => {
                 Ok(LiteralValue::Boolean(self.is_equal(&left_val, &right_val)))
