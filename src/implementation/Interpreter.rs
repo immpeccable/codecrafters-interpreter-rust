@@ -6,11 +6,12 @@ use std::{
 
 use crate::{
     enums::{LiteralValue::LiteralValue, TokenType::TokenType},
-    traits::{Expression::Expression, Interpreter::InterpreterTrait},
+    traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement},
 };
 
 use super::{
-    BinaryExpression::BinaryExpression, Grouping::Grouping, Literal::Literal, Token::Token,
+    BinaryExpression::BinaryExpression, ExpressionStatement::ExpressionStatement,
+    Grouping::Grouping, Literal::Literal, PrintStatement::PrintStatement, Token::Token,
     UnaryExpression::UnaryExpression,
 };
 
@@ -55,6 +56,11 @@ impl InterpreterTrait for Interpreter {
     fn evaluate(&self, expression: &Box<dyn Expression>) -> Result<LiteralValue, String> {
         return expression.interpret();
     }
+
+    fn execute(&self, statement: &Box<dyn Statement>) {
+        statement.interpret();
+    }
+
     fn visit_binary_expression(
         &self,
         expression: &BinaryExpression,
@@ -203,6 +209,24 @@ impl InterpreterTrait for Interpreter {
                 return Ok(LiteralValue::Boolean(!self.is_truthy(&right)));
             }
             op => panic!("Unexpected unary operator: {:?}", op),
+        }
+    }
+    fn visit_expression_statement(&self, statement: &ExpressionStatement) {
+        let _ = self.evaluate(&statement.expression);
+    }
+    fn visit_print_statement(&self, statement: &PrintStatement) {
+        let res = self.evaluate(&statement.expression).unwrap();
+        match res {
+            LiteralValue::Number(n) => {
+                println!("{}", n.parse::<f64>().unwrap());
+            }
+            _ => println!("{}", res.to_string()),
+        }
+    }
+
+    fn interpret(&self, statements: Vec<Box<dyn Statement>>) {
+        for statement in statements {
+            self.execute(&statement);
         }
     }
 }

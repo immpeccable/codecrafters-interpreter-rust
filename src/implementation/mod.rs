@@ -1,8 +1,10 @@
 pub mod AstPrinter;
 pub mod BinaryExpression;
+pub mod ExpressionStatement;
 pub mod Grouping;
 pub mod Interpreter;
 pub mod Literal;
 pub mod Parser;
+pub mod PrintStatement;
 pub mod Token;
 pub mod UnaryExpression;

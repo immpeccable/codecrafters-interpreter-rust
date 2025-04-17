@@ -9,6 +9,10 @@ use crate::implementation::Literal::Literal;
 use crate::implementation::Token::Token;
 use crate::implementation::UnaryExpression::UnaryExpression;
 use crate::traits::Expression::Expression;
+use crate::traits::Statement::Statement;
+
+use super::ExpressionStatement::ExpressionStatement;
+use super::PrintStatement::PrintStatement;
 
 pub struct Parser {
     pub tokens: Vec<Token>,
@@ -245,5 +249,46 @@ impl Parser {
 
     pub fn expression(&mut self) -> Result<Box<dyn Expression>, String> {
         return self.equality();
+    }
+
+    fn expression_statement(&mut self) -> Result<ExpressionStatement, String> {
+        let expression = self.expression()?;
+        match self.consume(
+            TokenType::SEMICOLON,
+            String::from("Expect ';' after value."),
+        ) {
+            Ok(_) => Ok(ExpressionStatement { expression }),
+            Err(error) => Err(error),
+        }
+    }
+
+    fn print_statement(&mut self) -> Result<PrintStatement, String> {
+        let expression = self.expression()?;
+        match self.consume(
+            TokenType::SEMICOLON,
+            String::from("Expect ';' after value."),
+        ) {
+            Ok(_) => Ok(PrintStatement { expression }),
+            Err(error) => Err(error),
+        }
+    }
+
+    fn statement(&mut self) -> Result<Box<dyn Statement>, String> {
+        if self.match_tokens(&vec![TokenType::PRINT]) {
+            let stmt = self.print_statement()?;
+            Ok(Box::new(stmt))
+        } else {
+            let stmt = self.expression_statement()?;
+            Ok(Box::new(stmt))
+        }
+    }
+
+    pub fn parse(&mut self) -> Result<Vec<Box<dyn Statement>>, String> {
+        let mut statements = Vec::new();
+        while !self.is_at_end() {
+            statements.push(self.statement()?);
+        }
+
+        return Ok(statements);
     }
 }

@@ -12,6 +12,8 @@ mod traits;
 mod utils;
 
 use enums::LiteralValue::LiteralValue;
+use implementation::Interpreter::Interpreter;
+use traits::Interpreter::InterpreterTrait;
 use utils::index::{
     consume_until_next_double_quote, consume_until_next_line, get_identifier,
     get_if_reserved_keyword, get_number,
@@ -438,7 +440,20 @@ fn main() {
                         _ => println!("{}", literal_value.to_string()),
                     }
                 }
-                Err(err) => exit(65),
+                Err(_) => exit(65),
+            }
+        }
+        "run" => {
+            let result = tokenize(file_contents);
+            let mut parser = Parser {
+                tokens: result.tokens,
+                current: 0,
+            };
+            let parser_res = parser.parse();
+            let intp = Interpreter {};
+            match parser_res {
+                Ok(statements) => intp.interpret(statements),
+                Err(_) => exit(65),
             }
         }
         _ => {
