@@ -8,3 +8,6 @@ pub mod Parser;
 pub mod PrintStatement;
 pub mod Token;
 pub mod UnaryExpression;
+pub mod VariableStatement;
+pub mod VariableExpression;
+pub mod Environment;

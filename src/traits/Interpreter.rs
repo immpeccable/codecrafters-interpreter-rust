@@ -6,24 +6,31 @@ use crate::implementation::Literal::Literal;
 use crate::implementation::PrintStatement::PrintStatement;
 use crate::implementation::Token::Token;
 use crate::implementation::UnaryExpression::UnaryExpression;
+use crate::implementation::VariableExpression::VariableExpression;
+use crate::implementation::VariableStatement::VariableStatement;
 use crate::traits::Expression::Expression;
 
 use super::Statement::Statement;
 
 pub trait InterpreterTrait {
     fn visit_binary_expression(
-        &self,
-        expression: &BinaryExpression,
+        &mut self,
+        expression: &mut BinaryExpression,
     ) -> Result<LiteralValue, String>;
-    fn visit_unary_expression(&self, expression: &UnaryExpression) -> Result<LiteralValue, String>;
-    fn visit_print_statement(&self, statement: &PrintStatement);
-    fn visit_expression_statement(&self, statement: &ExpressionStatement);
-    fn visit_grouping(&self, expression: &Grouping) -> Result<LiteralValue, String>;
+    fn visit_unary_expression(&mut self, expression: &mut UnaryExpression) -> Result<LiteralValue, String>;
+    fn visit_print_statement(&mut self, statement: &mut PrintStatement);
+    fn visit_expression_statement(&mut self, statement: &mut ExpressionStatement);
+    fn visit_variable_statement(&mut self, statement: &mut VariableStatement);
+    fn visit_grouping(&mut self, expression: &mut Grouping) -> Result<LiteralValue, String>;
     fn visit_literal(&self, expression: &Literal) -> Result<LiteralValue, String>;
-    fn evaluate(&self, expression: &Box<dyn Expression>) -> Result<LiteralValue, String>;
+    fn evaluate(&mut self, expression: &mut Box<dyn Expression>) -> Result<LiteralValue, String>;
     fn is_truthy(&self, expression: &LiteralValue) -> bool;
     fn is_equal(&self, left: &LiteralValue, right: &LiteralValue) -> bool;
-    fn execute(&self, statement: &Box<dyn Statement>);
+    fn execute(&mut self, statement: &mut Box<dyn Statement>);
     fn error(&self, message: String, token: &Token) -> String;
-    fn interpret(&self, statements: Vec<Box<dyn Statement>>);
+    fn interpret(&mut self, statements: Vec<Box<dyn Statement>>);
+    fn visit_variable_expression(
+        &mut self,
+        expression: &VariableExpression,
+    ) -> Result<LiteralValue, String>;
 }

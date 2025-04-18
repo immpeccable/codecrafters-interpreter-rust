@@ -8,9 +8,6 @@ use crate::traits::Expression::Expression;
 pub struct AstPrinter {}
 
 impl AstPrinterTrait for AstPrinter {
-    fn print(&self, expression: &Box<dyn Expression>) -> String {
-        return expression.expression_print();
-    }
     fn visit_binary_expression(&self, expression: &BinaryExpression) -> String {
         return self.paranthesize(
             expression.operator.token_value.clone(),

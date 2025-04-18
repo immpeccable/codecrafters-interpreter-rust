@@ -1,6 +1,5 @@
-use crate::enums::LiteralValue::LiteralValue;
+use super::Interpreter::InterpreterTrait;
 
 pub trait Statement {
-    fn statement_print(&self) -> String;
-    fn interpret(&self);
+    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait);
 }

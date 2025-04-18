@@ -431,8 +431,8 @@ fn main() {
             };
             let parser_result = parser.expression();
             match parser_result {
-                Ok(expr) => {
-                    let literal_value = expr.interpret().unwrap();
+                Ok(mut expr) => {
+                    let literal_value = expr.interpret(&mut Interpreter::default()).unwrap();
                     match literal_value {
                         LiteralValue::Number(n) => {
                             println!("{}", n.parse::<f64>().unwrap());
@@ -446,11 +446,11 @@ fn main() {
         "run" => {
             let result = tokenize(file_contents);
             let mut parser = Parser {
-                tokens: result.tokens,
+                tokens: result.tokens.clone(),
                 current: 0,
             };
             let parser_res = parser.parse();
-            let intp = Interpreter {};
+            let mut intp = Interpreter::default();
             match parser_res {
                 Ok(statements) => intp.interpret(statements),
                 Err(_) => exit(65),

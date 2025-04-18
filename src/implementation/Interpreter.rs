@@ -10,12 +10,16 @@ use crate::{
 };
 
 use super::{
-    BinaryExpression::BinaryExpression, ExpressionStatement::ExpressionStatement,
-    Grouping::Grouping, Literal::Literal, PrintStatement::PrintStatement, Token::Token,
-    UnaryExpression::UnaryExpression,
+    BinaryExpression::BinaryExpression, Environment::Environment,
+    ExpressionStatement::ExpressionStatement, Grouping::Grouping, Literal::Literal,
+    PrintStatement::PrintStatement, Token::Token, UnaryExpression::UnaryExpression,
+    VariableExpression::VariableExpression, VariableStatement::VariableStatement,
 };
 
-pub struct Interpreter {}
+#[derive(Default)]
+pub struct Interpreter {
+    environment: Environment,
+}
 
 impl InterpreterTrait for Interpreter {
     fn error(&self, message: String, token: &Token) -> String {
@@ -53,20 +57,20 @@ impl InterpreterTrait for Interpreter {
         }
     }
 
-    fn evaluate(&self, expression: &Box<dyn Expression>) -> Result<LiteralValue, String> {
-        return expression.interpret();
+    fn evaluate(&mut self, expression: &mut Box<dyn Expression>) -> Result<LiteralValue, String> {
+        return expression.interpret(self);
     }
 
-    fn execute(&self, statement: &Box<dyn Statement>) {
-        statement.interpret();
+    fn execute(&mut self, statement: &mut Box<dyn Statement>) {
+        statement.interpret(self);
     }
 
     fn visit_binary_expression(
-        &self,
-        expression: &BinaryExpression,
+        &mut self,
+        expression: &mut BinaryExpression,
     ) -> Result<LiteralValue, String> {
-        let left_val = self.evaluate(&expression.left)?;
-        let right_val = self.evaluate(&expression.right)?;
+        let left_val = self.evaluate(&mut expression.left)?;
+        let right_val = self.evaluate(&mut expression.right)?;
         let left_str = left_val.to_string();
         let right_str = right_val.to_string();
 
@@ -185,15 +189,18 @@ impl InterpreterTrait for Interpreter {
         }
     }
 
-    fn visit_grouping(&self, expression: &Grouping) -> Result<LiteralValue, String> {
-        return self.evaluate(&expression.expression);
+    fn visit_grouping(&mut self, expression: &mut Grouping) -> Result<LiteralValue, String> {
+        return self.evaluate(&mut expression.expression);
     }
     fn visit_literal(&self, expression: &Literal) -> Result<LiteralValue, String> {
         return Ok(expression.value.clone());
     }
 
-    fn visit_unary_expression(&self, expression: &UnaryExpression) -> Result<LiteralValue, String> {
-        let right = self.evaluate(&expression.expression).unwrap();
+    fn visit_unary_expression(
+        &mut self,
+        expression: &mut UnaryExpression,
+    ) -> Result<LiteralValue, String> {
+        let right = self.evaluate(&mut expression.expression).unwrap();
         match expression.operator.token_type {
             TokenType::MINUS => match right {
                 LiteralValue::Number(number) => {
@@ -211,11 +218,28 @@ impl InterpreterTrait for Interpreter {
             op => panic!("Unexpected unary operator: {:?}", op),
         }
     }
-    fn visit_expression_statement(&self, statement: &ExpressionStatement) {
-        let _ = self.evaluate(&statement.expression);
+    fn visit_variable_expression(
+        &mut self,
+        expression: &VariableExpression,
+    ) -> Result<LiteralValue, String> {
+        match self
+            .environment
+            .get(expression.variable.token_value.clone())
+        {
+            Some(res) => Ok(res.clone()),
+            None => panic!("Variable not found"),
+        }
     }
-    fn visit_print_statement(&self, statement: &PrintStatement) {
-        let res = self.evaluate(&statement.expression).unwrap();
+    fn visit_expression_statement(&mut self, statement: &mut ExpressionStatement) {
+        let _ = self.evaluate(&mut statement.expression);
+    }
+    fn visit_variable_statement(&mut self, statement: &mut VariableStatement) {
+        let value = &self.evaluate(&mut statement.initializer);
+        self.environment
+            .define(statement.name.token_value.clone(), value.clone().unwrap());
+    }
+    fn visit_print_statement(&mut self, statement: &mut PrintStatement) {
+        let res = self.evaluate(&mut statement.expression).unwrap();
         match res {
             LiteralValue::Number(n) => {
                 println!("{}", n.parse::<f64>().unwrap());
@@ -224,9 +248,9 @@ impl InterpreterTrait for Interpreter {
         }
     }
 
-    fn interpret(&self, statements: Vec<Box<dyn Statement>>) {
-        for statement in statements {
-            self.execute(&statement);
+    fn interpret(&mut self, statements: Vec<Box<dyn Statement>>) {
+        for mut statement in statements {
+            self.execute(&mut statement);
         }
     }
 }

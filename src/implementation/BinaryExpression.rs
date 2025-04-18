@@ -5,8 +5,6 @@ use crate::traits::AstPrinter::AstPrinterTrait;
 use crate::traits::Expression::Expression;
 use crate::traits::Interpreter::InterpreterTrait;
 
-use super::Interpreter::Interpreter;
-
 pub struct BinaryExpression {
     pub left: Box<dyn Expression>,
     pub right: Box<dyn Expression>,
@@ -18,8 +16,7 @@ impl Expression for BinaryExpression {
         let visitor = AstPrinter {};
         return visitor.visit_binary_expression(self);
     }
-    fn interpret(&self) -> Result<LiteralValue, String> {
-        let visitor = Interpreter {};
-        return visitor.visit_binary_expression(self);
+    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) -> Result<LiteralValue, String> {
+        return interpreter.visit_binary_expression(self);
     }
 }
