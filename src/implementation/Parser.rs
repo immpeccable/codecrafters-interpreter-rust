@@ -1,3 +1,4 @@
+use std::any::{Any, TypeId};
 use std::io::{self, Write};
 use std::result::Result::{Err, Ok};
 
@@ -11,6 +12,7 @@ use crate::implementation::UnaryExpression::UnaryExpression;
 use crate::traits::Expression::Expression;
 use crate::traits::Statement::Statement;
 
+use super::AssignmentExpression::AssignmentExpression;
 use super::ExpressionStatement::ExpressionStatement;
 use super::PrintStatement::PrintStatement;
 use super::VariableExpression::VariableExpression;
@@ -277,8 +279,30 @@ impl Parser {
         }
     }
 
+    fn assignment(&mut self) -> Result<Box<dyn Expression>, String> {
+        let expression = self.equality()?;
+        if self.match_tokens(&Vec::from([TokenType::EQUAL]))? {
+            let equals = self.previous()?;
+            let value = self.assignment()?;
+
+            if expression.type_id() == TypeId::of::<VariableExpression>() {
+                println!("hello world");
+                let variable_expression = (*expression)
+                    .as_any()
+                    .downcast_ref::<VariableExpression>()
+                    .unwrap();
+                return Ok(Box::new(AssignmentExpression {
+                    name: variable_expression.variable.clone(),
+                    value,
+                }));
+            }
+            self.error(equals.clone(), String::from("Invalid assignment target."))
+        }
+        return Ok(expression);
+    }
+
     pub fn expression(&mut self) -> Result<Box<dyn Expression>, String> {
-        return self.equality();
+        return self.assignment();
     }
 
     fn expression_statement(&mut self) -> Result<ExpressionStatement, String> {
@@ -329,7 +353,12 @@ impl Parser {
                 initializer: v,
                 name,
             })),
-            None => panic!("Expression not found"),
+            None => Ok(Box::new(VariableStatement {
+                initializer: Box::new(Literal {
+                    value: LiteralValue::Nil,
+                }),
+                name,
+            })),
         }
     }
 

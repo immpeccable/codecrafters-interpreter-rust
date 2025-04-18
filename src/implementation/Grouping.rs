@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use crate::enums::LiteralValue::LiteralValue;
 use crate::implementation::AstPrinter::AstPrinter;
 use crate::traits::AstPrinter::AstPrinterTrait;
@@ -15,5 +17,8 @@ impl Expression for Grouping {
     }
     fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) -> Result<LiteralValue, String> {
         return interpreter.visit_grouping(self);
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

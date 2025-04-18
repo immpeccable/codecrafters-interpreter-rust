@@ -1,6 +1,4 @@
-use crate::{
-    traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement},
-};
+use crate::traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement};
 
 use super::Token::Token;
 
@@ -11,7 +9,7 @@ pub struct VariableStatement {
 
 impl Statement for VariableStatement {
     fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) {
-        let value = interpreter.evaluate(&mut self.initializer);
+        let _ = interpreter.evaluate(&mut self.initializer);
         interpreter.visit_variable_statement(self);
     }
 }

@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use crate::enums::LiteralValue::LiteralValue;
 use crate::implementation::AstPrinter::AstPrinter;
 use crate::traits::AstPrinter::AstPrinterTrait;
@@ -16,5 +18,8 @@ impl Expression for Literal {
 
     fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) -> Result<LiteralValue, String> {
         return interpreter.visit_literal(self);
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use crate::enums::LiteralValue::LiteralValue;
 use crate::implementation::AstPrinter::AstPrinter;
 use crate::implementation::Token::Token;
@@ -14,6 +16,9 @@ impl Expression for UnaryExpression {
     fn expression_print(&self) -> String {
         let visitor = AstPrinter {};
         return visitor.visit_unary_expression(self);
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 
     fn interpret(

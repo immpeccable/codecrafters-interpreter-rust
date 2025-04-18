@@ -1,4 +1,5 @@
 use crate::enums::LiteralValue::LiteralValue;
+use crate::implementation::AssignmentExpression::AssignmentExpression;
 use crate::implementation::BinaryExpression::BinaryExpression;
 use crate::implementation::ExpressionStatement::ExpressionStatement;
 use crate::implementation::Grouping::Grouping;
@@ -17,7 +18,10 @@ pub trait InterpreterTrait {
         &mut self,
         expression: &mut BinaryExpression,
     ) -> Result<LiteralValue, String>;
-    fn visit_unary_expression(&mut self, expression: &mut UnaryExpression) -> Result<LiteralValue, String>;
+    fn visit_unary_expression(
+        &mut self,
+        expression: &mut UnaryExpression,
+    ) -> Result<LiteralValue, String>;
     fn visit_print_statement(&mut self, statement: &mut PrintStatement);
     fn visit_expression_statement(&mut self, statement: &mut ExpressionStatement);
     fn visit_variable_statement(&mut self, statement: &mut VariableStatement);
@@ -32,5 +36,9 @@ pub trait InterpreterTrait {
     fn visit_variable_expression(
         &mut self,
         expression: &VariableExpression,
+    ) -> Result<LiteralValue, String>;
+    fn visit_assignment_expression(
+        &mut self,
+        expression: &mut AssignmentExpression,
     ) -> Result<LiteralValue, String>;
 }

@@ -10,10 +10,11 @@ use crate::{
 };
 
 use super::{
-    BinaryExpression::BinaryExpression, Environment::Environment,
-    ExpressionStatement::ExpressionStatement, Grouping::Grouping, Literal::Literal,
-    PrintStatement::PrintStatement, Token::Token, UnaryExpression::UnaryExpression,
-    VariableExpression::VariableExpression, VariableStatement::VariableStatement,
+    AssignmentExpression::AssignmentExpression, BinaryExpression::BinaryExpression,
+    Environment::Environment, ExpressionStatement::ExpressionStatement, Grouping::Grouping,
+    Literal::Literal, PrintStatement::PrintStatement, Token::Token,
+    UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
+    VariableStatement::VariableStatement,
 };
 
 #[derive(Default)]
@@ -258,5 +259,14 @@ impl InterpreterTrait for Interpreter {
         for mut statement in statements {
             self.execute(&mut statement);
         }
+    }
+    fn visit_assignment_expression(
+        &mut self,
+        expression: &mut AssignmentExpression,
+    ) -> Result<LiteralValue, String> {
+        let value = self.evaluate(&mut expression.value)?;
+        self.environment
+            .assign(expression.name.clone(), value.clone())?;
+        return Ok(value.clone());
     }
 }
