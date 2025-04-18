@@ -227,7 +227,13 @@ impl InterpreterTrait for Interpreter {
             .get(expression.variable.token_value.clone())
         {
             Some(res) => Ok(res.clone()),
-            None => panic!("Variable not found"),
+            None => Err(self.error(
+                String::from(format!(
+                    "Undefined variable {}.",
+                    &expression.variable.token_value
+                )),
+                &expression.variable,
+            )),
         }
     }
     fn visit_expression_statement(&mut self, statement: &mut ExpressionStatement) {
