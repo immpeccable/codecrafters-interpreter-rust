@@ -17,7 +17,10 @@ impl Expression for BinaryExpression {
         let visitor = AstPrinter {};
         return visitor.visit_binary_expression(self);
     }
-    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) -> Result<LiteralValue, String> {
+    fn interpret(
+        &mut self,
+        interpreter: &mut dyn InterpreterTrait,
+    ) -> Result<LiteralValue, String> {
         return interpreter.visit_binary_expression(self);
     }
     fn as_any(&self) -> &dyn Any {

@@ -285,16 +285,9 @@ impl Parser {
             let equals = self.previous()?;
             let value = self.assignment()?;
 
-            if expression.type_id() == TypeId::of::<VariableExpression>() {
-                println!("hello world");
-                let variable_expression = (*expression)
-                    .as_any()
-                    .downcast_ref::<VariableExpression>()
-                    .unwrap();
-                return Ok(Box::new(AssignmentExpression {
-                    name: variable_expression.variable.clone(),
-                    value,
-                }));
+            if let Some(var_expr) = expression.as_any().downcast_ref::<VariableExpression>() {
+                let name = var_expr.variable.clone();
+                return Ok(Box::new(AssignmentExpression { name, value }));
             }
             self.error(equals.clone(), String::from("Invalid assignment target."))
         }
