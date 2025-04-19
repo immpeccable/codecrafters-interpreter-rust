@@ -7,6 +7,7 @@ use super::Token::Token;
 #[derive(Default)]
 pub struct Environment {
     pub values: HashMap<String, LiteralValue>,
+    pub enclosing: Option<Box<Environment>>,
 }
 
 impl Environment {
@@ -14,12 +15,24 @@ impl Environment {
         self.values.insert(name, value);
     }
     pub fn get(&mut self, name: String) -> Option<&LiteralValue> {
-        return self.values.get(&name);
+        match self.values.get(&name) {
+            Some(v) => Some(v),
+            None => match self.enclosing.as_mut() {
+                Some(parent) => parent.get(name),
+                None => None,
+            },
+        }
     }
     pub fn assign(&mut self, token: Token, value: LiteralValue) -> Result<(), String> {
         if self.values.contains_key(&token.token_value) {
             self.values.insert(token.token_value, value);
             return Ok(());
+        }
+        match self.enclosing.as_mut() {
+            Some(parent) => {
+                parent.assign(token.clone(), value)?;
+            }
+            None => {}
         }
         return Err(String::from(format!(
             "Undefined variable {}.",

@@ -12,3 +12,4 @@ pub mod VariableStatement;
 pub mod VariableExpression;
 pub mod Environment;
 pub mod AssignmentExpression;
+pub mod BlockStatement;

@@ -1,6 +1,7 @@
 use crate::enums::LiteralValue::LiteralValue;
 use crate::implementation::AssignmentExpression::AssignmentExpression;
 use crate::implementation::BinaryExpression::BinaryExpression;
+use crate::implementation::BlockStatement::BlockStatement;
 use crate::implementation::ExpressionStatement::ExpressionStatement;
 use crate::implementation::Grouping::Grouping;
 use crate::implementation::Literal::Literal;
@@ -32,7 +33,7 @@ pub trait InterpreterTrait {
     fn is_equal(&self, left: &LiteralValue, right: &LiteralValue) -> bool;
     fn execute(&mut self, statement: &mut Box<dyn Statement>);
     fn error(&self, message: String, token: &Token) -> String;
-    fn interpret(&mut self, statements: Vec<Box<dyn Statement>>);
+    fn interpret(&mut self, statements: &mut Vec<Box<dyn Statement>>);
     fn visit_variable_expression(
         &mut self,
         expression: &VariableExpression,
@@ -41,4 +42,5 @@ pub trait InterpreterTrait {
         &mut self,
         expression: &mut AssignmentExpression,
     ) -> Result<LiteralValue, String>;
+    fn visit_block_statement(&mut self, statement: &mut BlockStatement);
 }

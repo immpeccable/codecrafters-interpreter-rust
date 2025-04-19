@@ -1,4 +1,3 @@
-use std::any::{Any, TypeId};
 use std::io::{self, Write};
 use std::result::Result::{Err, Ok};
 
@@ -13,6 +12,7 @@ use crate::traits::Expression::Expression;
 use crate::traits::Statement::Statement;
 
 use super::AssignmentExpression::AssignmentExpression;
+use super::BlockStatement::BlockStatement;
 use super::ExpressionStatement::ExpressionStatement;
 use super::PrintStatement::PrintStatement;
 use super::VariableExpression::VariableExpression;
@@ -27,7 +27,7 @@ impl Parser {
     fn match_tokens(&mut self, token_types: &Vec<TokenType>) -> Result<bool, String> {
         for token_type in token_types {
             if self.check(*token_type)? {
-                self.advance();
+                self.advance()?;
                 return Ok(true);
             }
         }
@@ -148,7 +148,7 @@ impl Parser {
                         TokenType::RIGHT_PAREN,
                         "Expect ')' after expression.".to_string(),
                     ) {
-                        Ok(token) => Ok(Box::new(Grouping { expression })),
+                        Ok(_) => Ok(Box::new(Grouping { expression })),
                         Err(error) => Err(error),
                     }
                 }
@@ -320,13 +320,25 @@ impl Parser {
         }
     }
 
+    fn block(&mut self) -> Result<BlockStatement, String> {
+        let mut statements = Vec::new();
+        while !self.check(TokenType::RIGHT_BRACE)? && !self.is_at_end()? {
+            statements.push(self.declaration()?);
+        }
+        self.consume(
+            TokenType::RIGHT_BRACE,
+            String::from("Expect '}' after block."),
+        )?;
+        return Ok(BlockStatement { statements });
+    }
+
     fn statement(&mut self) -> Result<Box<dyn Statement>, String> {
         if self.match_tokens(&vec![TokenType::PRINT])? {
-            let stmt = self.print_statement()?;
-            Ok(Box::new(stmt))
+            Ok(Box::new(self.print_statement()?))
+        } else if self.match_tokens(&vec![TokenType::LEFT_BRACE])? {
+            return Ok(Box::new(self.block()?));
         } else {
-            let stmt = self.expression_statement()?;
-            Ok(Box::new(stmt))
+            Ok(Box::new(self.expression_statement()?))
         }
     }
 

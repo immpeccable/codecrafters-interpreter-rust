@@ -452,7 +452,7 @@ fn main() {
             let parser_res = parser.parse();
             let mut intp = Interpreter::default();
             match parser_res {
-                Ok(statements) => intp.interpret(statements),
+                Ok(mut statements) => intp.interpret(&mut statements),
                 Err(_) => exit(65),
             }
         }

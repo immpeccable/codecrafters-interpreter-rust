@@ -1,5 +1,6 @@
 use core::panic;
 use std::{
+    collections::HashMap,
     io::{self, Write},
     process::exit,
 };
@@ -11,10 +12,10 @@ use crate::{
 
 use super::{
     AssignmentExpression::AssignmentExpression, BinaryExpression::BinaryExpression,
-    Environment::Environment, ExpressionStatement::ExpressionStatement, Grouping::Grouping,
-    Literal::Literal, PrintStatement::PrintStatement, Token::Token,
-    UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
-    VariableStatement::VariableStatement,
+    BlockStatement::BlockStatement, Environment::Environment,
+    ExpressionStatement::ExpressionStatement, Grouping::Grouping, Literal::Literal,
+    PrintStatement::PrintStatement, Token::Token, UnaryExpression::UnaryExpression,
+    VariableExpression::VariableExpression, VariableStatement::VariableStatement,
 };
 
 #[derive(Default)]
@@ -255,11 +256,34 @@ impl InterpreterTrait for Interpreter {
         }
     }
 
-    fn interpret(&mut self, statements: Vec<Box<dyn Statement>>) {
+    fn interpret(&mut self, statements: &mut Vec<Box<dyn Statement>>) {
         for mut statement in statements {
             self.execute(&mut statement);
         }
     }
+
+    fn visit_block_statement(&mut self, statement: &mut BlockStatement) {
+        // swap out the old env, leaving an empty one in its place
+        let old = std::mem::replace(
+            &mut self.environment,
+            Environment {
+                values: HashMap::new(),
+                enclosing: None,
+            },
+        );
+
+        // now create the child, owning the old as its parent
+        self.environment.enclosing = Some(Box::new(old));
+
+        // run the block in that new scope
+        self.interpret(&mut statement.statements);
+
+        // when we're done, pull the parent back out and restore it
+        if let Some(parent_box) = self.environment.enclosing.take() {
+            self.environment = *parent_box;
+        }
+    }
+
     fn visit_assignment_expression(
         &mut self,
         expression: &mut AssignmentExpression,
