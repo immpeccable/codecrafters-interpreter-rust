@@ -347,7 +347,7 @@ impl Parser {
         )?;
         let condition = self.expression()?;
         self.consume(
-            TokenType::LEFT_PAREN,
+            TokenType::RIGHT_PAREN,
             String::from("Expect ')' after condition."),
         )?;
         let body = self.statement()?;
