@@ -6,6 +6,7 @@ use crate::implementation::ExpressionStatement::ExpressionStatement;
 use crate::implementation::Grouping::Grouping;
 use crate::implementation::IfStatement::IfStatement;
 use crate::implementation::Literal::Literal;
+use crate::implementation::LogicalExpression::LogicalExpression;
 use crate::implementation::PrintStatement::PrintStatement;
 use crate::implementation::Token::Token;
 use crate::implementation::UnaryExpression::UnaryExpression;
@@ -23,6 +24,10 @@ pub trait InterpreterTrait {
     fn visit_unary_expression(
         &mut self,
         expression: &mut UnaryExpression,
+    ) -> Result<LiteralValue, String>;
+    fn visit_logical_expression(
+        &mut self,
+        expression: &mut LogicalExpression,
     ) -> Result<LiteralValue, String>;
     fn visit_print_statement(&mut self, statement: &mut PrintStatement);
     fn visit_expression_statement(&mut self, statement: &mut ExpressionStatement);

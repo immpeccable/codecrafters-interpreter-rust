@@ -8,6 +8,7 @@ pub mod Grouping;
 pub mod IfStatement;
 pub mod Interpreter;
 pub mod Literal;
+pub mod LogicalExpression;
 pub mod Parser;
 pub mod PrintStatement;
 pub mod Token;

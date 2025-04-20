@@ -15,6 +15,7 @@ use super::AssignmentExpression::AssignmentExpression;
 use super::BlockStatement::BlockStatement;
 use super::ExpressionStatement::ExpressionStatement;
 use super::IfStatement::IfStatement;
+use super::LogicalExpression::LogicalExpression;
 use super::PrintStatement::PrintStatement;
 use super::VariableExpression::VariableExpression;
 use super::VariableStatement::VariableStatement;
@@ -280,8 +281,36 @@ impl Parser {
         }
     }
 
+    fn and(&mut self) -> Result<Box<dyn Expression>, String> {
+        let mut expr = self.equality()?;
+        while self.match_tokens(&vec![TokenType::AND])? {
+            let operator = self.previous()?;
+            let right = self.equality()?;
+            expr = Box::new(LogicalExpression {
+                left: expr,
+                operator,
+                right,
+            })
+        }
+        return Ok(expr);
+    }
+
+    fn or(&mut self) -> Result<Box<dyn Expression>, String> {
+        let mut expr = self.and()?;
+        while self.match_tokens(&vec![TokenType::OR])? {
+            let operator = self.previous()?;
+            let right = self.and()?;
+            expr = Box::new(LogicalExpression {
+                left: expr,
+                operator,
+                right,
+            })
+        }
+        return Ok(expr);
+    }
+
     fn assignment(&mut self) -> Result<Box<dyn Expression>, String> {
-        let expression = self.equality()?;
+        let expression = self.or()?;
         if self.match_tokens(&Vec::from([TokenType::EQUAL]))? {
             let equals = self.previous()?;
             let value = self.assignment()?;

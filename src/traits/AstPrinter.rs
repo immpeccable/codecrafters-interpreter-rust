@@ -2,7 +2,6 @@ use crate::implementation::BinaryExpression::BinaryExpression;
 use crate::implementation::Grouping::Grouping;
 use crate::implementation::Literal::Literal;
 use crate::implementation::UnaryExpression::UnaryExpression;
-use crate::implementation::VariableExpression::VariableExpression;
 use crate::traits::Expression::Expression;
 
 pub trait AstPrinterTrait {

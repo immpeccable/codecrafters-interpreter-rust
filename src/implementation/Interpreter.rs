@@ -239,6 +239,34 @@ impl InterpreterTrait for Interpreter {
             )),
         }
     }
+
+    fn visit_logical_expression(
+        &mut self,
+        expression: &mut super::LogicalExpression::LogicalExpression,
+    ) -> Result<LiteralValue, String> {
+        let left = self.evaluate(&mut expression.left)?;
+        if expression.operator.token_type == TokenType::OR {
+            if self.is_truthy(&left) {
+                return Ok(left);
+            }
+        } else {
+            if !self.is_truthy(&left) {
+                return Ok(left);
+            }
+        }
+        return self.evaluate(&mut expression.right);
+    }
+
+    fn visit_assignment_expression(
+        &mut self,
+        expression: &mut AssignmentExpression,
+    ) -> Result<LiteralValue, String> {
+        let value = self.evaluate(&mut expression.value)?;
+        self.environment
+            .assign(expression.name.clone(), value.clone())?;
+        return Ok(value.clone());
+    }
+
     fn visit_expression_statement(&mut self, statement: &mut ExpressionStatement) {
         let _ = self.evaluate(&mut statement.expression);
     }
@@ -254,12 +282,6 @@ impl InterpreterTrait for Interpreter {
                 println!("{}", n.parse::<f64>().unwrap());
             }
             _ => println!("{}", res.to_string()),
-        }
-    }
-
-    fn interpret(&mut self, statements: &mut Vec<Box<dyn Statement>>) {
-        for mut statement in statements {
-            self.execute(&mut statement);
         }
     }
 
@@ -285,16 +307,6 @@ impl InterpreterTrait for Interpreter {
         }
     }
 
-    fn visit_assignment_expression(
-        &mut self,
-        expression: &mut AssignmentExpression,
-    ) -> Result<LiteralValue, String> {
-        let value = self.evaluate(&mut expression.value)?;
-        self.environment
-            .assign(expression.name.clone(), value.clone())?;
-        return Ok(value.clone());
-    }
-
     fn visit_if_statement(&mut self, statement: &mut IfStatement) -> Result<(), String> {
         let condition_evaluate_result = self.evaluate(&mut statement.condition)?;
         if self.is_truthy(&condition_evaluate_result) {
@@ -306,5 +318,11 @@ impl InterpreterTrait for Interpreter {
             };
         }
         return Ok(());
+    }
+
+    fn interpret(&mut self, statements: &mut Vec<Box<dyn Statement>>) {
+        for mut statement in statements {
+            self.execute(&mut statement);
+        }
     }
 }
