@@ -15,3 +15,4 @@ pub mod Token;
 pub mod UnaryExpression;
 pub mod VariableExpression;
 pub mod VariableStatement;
+pub mod WhileStatement;

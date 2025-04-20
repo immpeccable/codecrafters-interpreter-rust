@@ -19,6 +19,7 @@ use super::LogicalExpression::LogicalExpression;
 use super::PrintStatement::PrintStatement;
 use super::VariableExpression::VariableExpression;
 use super::VariableStatement::VariableStatement;
+use super::WhileStatement::WhileStatement;
 
 pub struct Parser {
     pub tokens: Vec<Token>,
@@ -337,6 +338,14 @@ impl Parser {
             Ok(_) => Ok(ExpressionStatement { expression }),
             Err(error) => Err(error),
         }
+    }
+
+    fn while_statement(&mut self) -> Result<WhileStatement, String> {
+        self.consume(TokenType::LEFT_PAREN, String::from("Expect ( after while"))?;
+        let condition = self.expression()?;
+        self.consume(TokenType::LEFT_PAREN, String::from("Expect ) after while"))?;
+        let body = self.statement()?;
+        return Ok(WhileStatement { condition, body });
     }
 
     fn print_statement(&mut self) -> Result<PrintStatement, String> {

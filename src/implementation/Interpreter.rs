@@ -16,7 +16,7 @@ use super::{
     ExpressionStatement::ExpressionStatement, Grouping::Grouping, IfStatement::IfStatement,
     Literal::Literal, PrintStatement::PrintStatement, Token::Token,
     UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
-    VariableStatement::VariableStatement,
+    VariableStatement::VariableStatement, WhileStatement::WhileStatement,
 };
 
 #[derive(Default)]
@@ -283,6 +283,14 @@ impl InterpreterTrait for Interpreter {
             }
             _ => println!("{}", res.to_string()),
         }
+    }
+
+    fn visit_while_statement(&mut self, statement: &mut WhileStatement) -> Result<(), String> {
+        let condition_evaluation = self.evaluate(&mut statement.condition)?;
+        while self.is_truthy(&condition_evaluation) {
+            self.execute(&mut statement.body);
+        }
+        return Ok(());
     }
 
     fn visit_block_statement(&mut self, statement: &mut BlockStatement) {

@@ -12,6 +12,7 @@ use crate::implementation::Token::Token;
 use crate::implementation::UnaryExpression::UnaryExpression;
 use crate::implementation::VariableExpression::VariableExpression;
 use crate::implementation::VariableStatement::VariableStatement;
+use crate::implementation::WhileStatement::WhileStatement;
 use crate::traits::Expression::Expression;
 
 use super::Statement::Statement;
@@ -50,4 +51,5 @@ pub trait InterpreterTrait {
     ) -> Result<LiteralValue, String>;
     fn visit_block_statement(&mut self, statement: &mut BlockStatement);
     fn visit_if_statement(&mut self, statement: &mut IfStatement) -> Result<(), String>;
+    fn visit_while_statement(&mut self, statement: &mut WhileStatement) -> Result<(), String>;
 }
