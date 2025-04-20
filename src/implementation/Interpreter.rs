@@ -286,9 +286,10 @@ impl InterpreterTrait for Interpreter {
     }
 
     fn visit_while_statement(&mut self, statement: &mut WhileStatement) -> Result<(), String> {
-        let condition_evaluation = self.evaluate(&mut statement.condition)?;
+        let mut condition_evaluation = self.evaluate(&mut statement.condition)?;
         while self.is_truthy(&condition_evaluation) {
             self.execute(&mut statement.body);
+            condition_evaluation = self.evaluate(&mut statement.condition)?;
         }
         return Ok(());
     }
