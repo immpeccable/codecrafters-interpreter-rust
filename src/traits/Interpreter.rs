@@ -4,6 +4,7 @@ use crate::implementation::BinaryExpression::BinaryExpression;
 use crate::implementation::BlockStatement::BlockStatement;
 use crate::implementation::ExpressionStatement::ExpressionStatement;
 use crate::implementation::Grouping::Grouping;
+use crate::implementation::IfStatement::IfStatement;
 use crate::implementation::Literal::Literal;
 use crate::implementation::PrintStatement::PrintStatement;
 use crate::implementation::Token::Token;
@@ -43,4 +44,5 @@ pub trait InterpreterTrait {
         expression: &mut AssignmentExpression,
     ) -> Result<LiteralValue, String>;
     fn visit_block_statement(&mut self, statement: &mut BlockStatement);
+    fn visit_if_statement(&mut self, statement: &mut IfStatement) -> Result<(), String>;
 }

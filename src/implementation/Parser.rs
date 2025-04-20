@@ -14,6 +14,7 @@ use crate::traits::Statement::Statement;
 use super::AssignmentExpression::AssignmentExpression;
 use super::BlockStatement::BlockStatement;
 use super::ExpressionStatement::ExpressionStatement;
+use super::IfStatement::IfStatement;
 use super::PrintStatement::PrintStatement;
 use super::VariableExpression::VariableExpression;
 use super::VariableStatement::VariableStatement;
@@ -332,9 +333,34 @@ impl Parser {
         return Ok(BlockStatement { statements });
     }
 
+    fn if_statement(&mut self) -> Result<IfStatement, String> {
+        self.consume(
+            TokenType::LEFT_PAREN,
+            String::from("Expect '(' after 'if'."),
+        )?;
+        let expression = self.expression()?;
+        self.consume(
+            TokenType::RIGHT_PAREN,
+            String::from("Expect ')' after if condition."),
+        )?;
+        let then_statement = self.statement()?;
+        let mut else_statement = None;
+        if self.match_tokens(&vec![TokenType::ELSE])? {
+            else_statement = Some(self.statement()?);
+        }
+
+        return Ok(IfStatement {
+            condition: expression,
+            then_statement,
+            else_statement,
+        });
+    }
+
     fn statement(&mut self) -> Result<Box<dyn Statement>, String> {
         if self.match_tokens(&vec![TokenType::PRINT])? {
             Ok(Box::new(self.print_statement()?))
+        } else if self.match_tokens(&vec![TokenType::IF])? {
+            return Ok(Box::new(self.if_statement()?));
         } else if self.match_tokens(&vec![TokenType::LEFT_BRACE])? {
             return Ok(Box::new(self.block()?));
         } else {

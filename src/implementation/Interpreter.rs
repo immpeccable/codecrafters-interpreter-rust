@@ -13,9 +13,10 @@ use crate::{
 use super::{
     AssignmentExpression::AssignmentExpression, BinaryExpression::BinaryExpression,
     BlockStatement::BlockStatement, Environment::Environment,
-    ExpressionStatement::ExpressionStatement, Grouping::Grouping, Literal::Literal,
-    PrintStatement::PrintStatement, Token::Token, UnaryExpression::UnaryExpression,
-    VariableExpression::VariableExpression, VariableStatement::VariableStatement,
+    ExpressionStatement::ExpressionStatement, Grouping::Grouping, IfStatement::IfStatement,
+    Literal::Literal, PrintStatement::PrintStatement, Token::Token,
+    UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
+    VariableStatement::VariableStatement,
 };
 
 #[derive(Default)]
@@ -292,5 +293,18 @@ impl InterpreterTrait for Interpreter {
         self.environment
             .assign(expression.name.clone(), value.clone())?;
         return Ok(value.clone());
+    }
+
+    fn visit_if_statement(&mut self, statement: &mut IfStatement) -> Result<(), String> {
+        let condition_evaluate_result = self.evaluate(&mut statement.condition)?;
+        if self.is_truthy(&condition_evaluate_result) {
+            self.execute(&mut statement.then_statement);
+        } else {
+            match &mut statement.else_statement {
+                Some(else_st) => self.execute(else_st),
+                None => {}
+            };
+        }
+        return Ok(());
     }
 }
