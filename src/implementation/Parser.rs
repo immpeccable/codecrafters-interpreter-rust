@@ -341,9 +341,15 @@ impl Parser {
     }
 
     fn while_statement(&mut self) -> Result<WhileStatement, String> {
-        self.consume(TokenType::LEFT_PAREN, String::from("Expect ( after while"))?;
+        self.consume(
+            TokenType::LEFT_PAREN,
+            String::from("Expect '(' after 'while'."),
+        )?;
         let condition = self.expression()?;
-        self.consume(TokenType::LEFT_PAREN, String::from("Expect ) after while"))?;
+        self.consume(
+            TokenType::LEFT_PAREN,
+            String::from("Expect ')' after condition."),
+        )?;
         let body = self.statement()?;
         return Ok(WhileStatement { condition, body });
     }
@@ -401,6 +407,8 @@ impl Parser {
             return Ok(Box::new(self.if_statement()?));
         } else if self.match_tokens(&vec![TokenType::LEFT_BRACE])? {
             return Ok(Box::new(self.block()?));
+        } else if self.match_tokens(&vec![TokenType::WHILE])? {
+            return Ok(Box::new(self.while_statement()?));
         } else {
             Ok(Box::new(self.expression_statement()?))
         }
