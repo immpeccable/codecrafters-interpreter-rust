@@ -354,6 +354,67 @@ impl Parser {
         return Ok(WhileStatement { condition, body });
     }
 
+    fn for_statement(&mut self) -> Result<Box<dyn Statement>, String> {
+        self.consume(
+            TokenType::LEFT_PAREN,
+            String::from("Expect '(' after 'for'."),
+        )?;
+        let mut initializer = None;
+        if self.match_tokens(&vec![TokenType::SEMICOLON])? {
+            initializer = None;
+        } else if self.match_tokens(&vec![TokenType::VAR])? {
+            initializer = Some(self.var_declaration()?);
+        } else {
+            initializer = Some(Box::new(self.expression_statement()?));
+        }
+        let mut condition = None;
+        if !self.check(TokenType::SEMICOLON)? {
+            condition = Some(self.expression()?);
+        }
+        self.consume(
+            TokenType::SEMICOLON,
+            String::from("Expect ';' after loop condition."),
+        )?;
+        let mut increment = None;
+        if !self.check(TokenType::RIGHT_PAREN)? {
+            increment = Some(self.expression()?);
+        }
+        self.consume(
+            TokenType::RIGHT_PAREN,
+            String::from("Expect ')' after for clauses."),
+        )?;
+        let mut body = self.statement()?;
+        match increment {
+            Some(inc) => {
+                body = Box::new(BlockStatement {
+                    statements: vec![body, Box::new(ExpressionStatement { expression: inc })],
+                })
+            }
+            None => {}
+        }
+        match condition {
+            Some(_) => {}
+            None => {
+                condition = Some(Box::new(Literal {
+                    value: LiteralValue::Boolean(true),
+                }))
+            }
+        }
+        body = Box::new(WhileStatement {
+            body,
+            condition: condition.unwrap(),
+        });
+        match initializer {
+            Some(init) => {
+                body = Box::new(BlockStatement {
+                    statements: vec![init, body],
+                })
+            }
+            None => {}
+        }
+        return Ok(body);
+    }
+
     fn print_statement(&mut self) -> Result<PrintStatement, String> {
         let expression = self.expression()?;
         match self.consume(
@@ -409,6 +470,8 @@ impl Parser {
             return Ok(Box::new(self.block()?));
         } else if self.match_tokens(&vec![TokenType::WHILE])? {
             return Ok(Box::new(self.while_statement()?));
+        } else if self.match_tokens(&vec![TokenType::FOR])? {
+            return Ok(self.for_statement()?);
         } else {
             Ok(Box::new(self.expression_statement()?))
         }
