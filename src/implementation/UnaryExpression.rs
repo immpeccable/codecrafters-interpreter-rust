@@ -12,6 +12,15 @@ pub struct UnaryExpression {
     pub expression: Box<dyn Expression>,
 }
 
+impl Clone for UnaryExpression {
+    fn clone(&self) -> Self {
+        UnaryExpression {
+            operator: self.operator.clone(),
+            expression: self.expression.clone_box(),
+        }
+    }
+}
+
 impl Expression for UnaryExpression {
     fn expression_print(&self) -> String {
         let visitor = AstPrinter {};
@@ -26,5 +35,9 @@ impl Expression for UnaryExpression {
         interpreter: &mut dyn InterpreterTrait,
     ) -> Result<LiteralValue, String> {
         return interpreter.visit_unary_expression(self);
+    }
+
+    fn clone_box(&self) -> Box<dyn Expression> {
+        Box::new(self.clone())
     }
 }

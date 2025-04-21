@@ -7,8 +7,20 @@ pub struct BlockStatement {
     pub statements: Vec<Box<dyn Statement>>,
 }
 
+impl Clone for BlockStatement {
+    fn clone(&self) -> Self {
+        BlockStatement {
+            statements: self.statements.iter().map(|s| s.clone_box()).collect(),
+        }
+    }
+}
+
 impl Statement for BlockStatement {
     fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) {
         interpreter.visit_block_statement(self);
+    }
+
+    fn clone_box(&self) -> Box<dyn Statement> {
+        Box::new(self.clone())
     }
 }

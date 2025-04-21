@@ -17,21 +17,22 @@ use crate::{
 use super::{
     AssignmentExpression::AssignmentExpression, BinaryExpression::BinaryExpression,
     BlockStatement::BlockStatement, CallExpression::CallExpression, Clock::Clock,
-    Environment::Environment, ExpressionStatement::ExpressionStatement, Grouping::Grouping,
-    IfStatement::IfStatement, Literal::Literal, PrintStatement::PrintStatement, Token::Token,
+    Environment::Environment, ExpressionStatement::ExpressionStatement,
+    FunctionStatement::FunctionStatement, Grouping::Grouping, IfStatement::IfStatement,
+    Literal::Literal, LoxFunction::LoxFunction, PrintStatement::PrintStatement, Token::Token,
     UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
     VariableStatement::VariableStatement, WhileStatement::WhileStatement,
 };
 
 #[derive(Default)]
 pub struct Interpreter {
-    environment: Environment,
+    pub environment: Environment,
 }
 
 impl InterpreterTrait for Interpreter {
     fn define_globals(&mut self) {
         self.environment
-            .define(String::from("clock"), LiteralValue::Function(Clock {}));
+            .define(String::from("clock"), LiteralValue::Clock(Clock {}));
     }
 
     fn error(&self, message: String, token: &Token) -> String {
@@ -336,6 +337,18 @@ impl InterpreterTrait for Interpreter {
             self.execute(&mut statement.body);
             condition_evaluation = self.evaluate(&mut statement.condition)?;
         }
+        return Ok(());
+    }
+
+    fn visit_function_statement(
+        &mut self,
+        statement: &mut FunctionStatement,
+    ) -> Result<(), String> {
+        let name = statement.name.token_value.clone();
+        let fnc = LoxFunction {
+            declaration: statement.clone(),
+        };
+        self.environment.define(name, LiteralValue::Function(fnc));
         return Ok(());
     }
 

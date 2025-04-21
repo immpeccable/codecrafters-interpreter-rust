@@ -9,6 +9,15 @@ pub struct AssignmentExpression {
     pub value: Box<dyn Expression>,
 }
 
+impl Clone for AssignmentExpression {
+    fn clone(&self) -> Self {
+        AssignmentExpression {
+            name: self.name.clone(),
+            value: self.value.clone_box(),
+        }
+    }
+}
+
 impl Expression for AssignmentExpression {
     fn expression_print(&self) -> String {
         return String::from("Visit variable expression");
@@ -23,5 +32,9 @@ impl Expression for AssignmentExpression {
 
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    fn clone_box(&self) -> Box<dyn Expression> {
+        Box::new(self.clone())
     }
 }

@@ -15,6 +15,7 @@ use super::AssignmentExpression::AssignmentExpression;
 use super::BlockStatement::BlockStatement;
 use super::CallExpression::CallExpression;
 use super::ExpressionStatement::ExpressionStatement;
+use super::FunctionStatement::FunctionStatement;
 use super::IfStatement::IfStatement;
 use super::LogicalExpression::LogicalExpression;
 use super::PrintStatement::PrintStatement;
@@ -540,9 +541,62 @@ impl Parser {
         }
     }
 
+    fn fun_declaration(&mut self, kind: String) -> Result<Box<dyn Statement>, String> {
+        let name = self.consume(
+            TokenType::IDENTIFIER,
+            String::from(format!("Expect {} name.", kind)),
+        )?;
+        self.consume(
+            TokenType::LEFT_PAREN,
+            String::from(format!("Expect '(' after {} name.", kind)),
+        )?;
+
+        let mut parameters = Vec::new();
+        if !self.check(TokenType::RIGHT_PAREN)? {
+            print!("hello world");
+            parameters.push(self.consume(
+                TokenType::IDENTIFIER,
+                String::from("Expect parameter name."),
+            )?);
+
+            while self.match_tokens(&vec![TokenType::COMMA])? {
+                if parameters.len() >= 255 {
+                    self.error(
+                        self.peek()?,
+                        String::from("Can't have more than 255 parameters"),
+                    );
+                }
+                parameters.push(self.consume(
+                    TokenType::IDENTIFIER,
+                    String::from("Expect parameter name."),
+                )?);
+            }
+        }
+
+        self.consume(
+            TokenType::RIGHT_PAREN,
+            String::from(format!("Expect ')' after parameters")),
+        )?;
+        self.consume(
+            TokenType::LEFT_BRACE,
+            String::from(format!("Expect '{{' before {} body.", kind)),
+        )?;
+
+        let statements = self.block()?;
+
+        return Ok(Box::new(FunctionStatement {
+            name,
+            parameters,
+            body: statements.statements,
+        }));
+    }
+
     fn declaration(&mut self) -> Result<Box<dyn Statement>, String> {
         if self.match_tokens(&Vec::from([TokenType::VAR]))? {
             return self.var_declaration();
+        }
+        if self.match_tokens(&vec![TokenType::FUN])? {
+            return self.fun_declaration(String::from("function"));
         }
         return self.statement();
     }

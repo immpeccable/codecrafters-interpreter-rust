@@ -10,6 +10,16 @@ pub struct LogicalExpression {
     pub operator: Token,
 }
 
+impl Clone for LogicalExpression {
+    fn clone(&self) -> Self {
+        LogicalExpression {
+            left: self.left.clone_box(),
+            right: self.right.clone_box(),
+            operator: self.operator.clone(),
+        }
+    }
+}
+
 impl Expression for LogicalExpression {
     fn expression_print(&self) -> String {
         return String::from("zz");
@@ -22,5 +32,9 @@ impl Expression for LogicalExpression {
     }
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    fn clone_box(&self) -> Box<dyn Expression> {
+        Box::new(self.clone())
     }
 }

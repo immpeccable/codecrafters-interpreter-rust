@@ -11,6 +11,16 @@ pub struct CallExpression {
     pub arguments: Vec<Box<dyn Expression>>,
 }
 
+impl Clone for CallExpression {
+    fn clone(&self) -> Self {
+        CallExpression {
+            callee: self.callee.clone_box(),
+            paren: self.paren.clone(),
+            arguments: self.arguments.iter().map(|arg| arg.clone_box()).collect(),
+        }
+    }
+}
+
 impl Expression for CallExpression {
     fn expression_print(&self) -> String {
         return String::from("zzz");
@@ -23,5 +33,9 @@ impl Expression for CallExpression {
     }
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    fn clone_box(&self) -> Box<dyn Expression> {
+        Box::new(self.clone())
     }
 }

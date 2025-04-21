@@ -1,14 +1,15 @@
 use std::fmt;
 
-use crate::implementation::Clock::Clock;
+use crate::implementation::{Clock::Clock, LoxFunction::LoxFunction};
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Clone)]
 pub enum LiteralValue {
     Nil,
     Boolean(bool),
     Number(String),
     String(String),
-    Function(Clock),
+    Clock(Clock),
+    Function(LoxFunction),
 }
 
 impl fmt::Display for LiteralValue {
@@ -17,7 +18,10 @@ impl fmt::Display for LiteralValue {
             LiteralValue::Boolean(val) => write!(f, "{}", val),
             LiteralValue::Nil => write!(f, "nil"),
             LiteralValue::String(s) => write!(f, "{}", s),
-            LiteralValue::Function(_) => write!(f, "<native fn>"),
+            LiteralValue::Clock(_) => write!(f, "<native fn>"),
+            LiteralValue::Function(lf) => {
+                write!(f, "<fn {}>", lf.declaration.name.token_value.to_string())
+            }
             LiteralValue::Number(s) => {
                 if let Ok(num) = s.parse::<f64>() {
                     // Using default formatting gives us the trimmed version.

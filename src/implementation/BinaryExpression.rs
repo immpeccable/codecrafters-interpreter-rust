@@ -12,6 +12,16 @@ pub struct BinaryExpression {
     pub operator: Token,
 }
 
+impl Clone for BinaryExpression {
+    fn clone(&self) -> Self {
+        BinaryExpression {
+            left: self.left.clone_box(),
+            right: self.right.clone_box(),
+            operator: self.operator.clone(),
+        }
+    }
+}
+
 impl Expression for BinaryExpression {
     fn expression_print(&self) -> String {
         let visitor = AstPrinter {};
@@ -25,5 +35,9 @@ impl Expression for BinaryExpression {
     }
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    fn clone_box(&self) -> Box<dyn Expression> {
+        Box::new(self.clone())
     }
 }

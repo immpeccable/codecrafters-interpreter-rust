@@ -10,6 +10,14 @@ pub struct Grouping {
     pub expression: Box<dyn Expression>,
 }
 
+impl Clone for Grouping {
+    fn clone(&self) -> Self {
+        Grouping {
+            expression: self.expression.clone_box(),
+        }
+    }
+}
+
 impl Expression for Grouping {
     fn expression_print(&self) -> String {
         let visitor = AstPrinter {};
@@ -20,5 +28,9 @@ impl Expression for Grouping {
     }
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    fn clone_box(&self) -> Box<dyn Expression> {
+        Box::new(self.clone())
     }
 }

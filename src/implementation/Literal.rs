@@ -10,6 +10,14 @@ pub struct Literal {
     pub value: LiteralValue,
 }
 
+impl Clone for Literal {
+    fn clone(&self) -> Self {
+        Literal {
+            value: self.value.clone(),
+        }
+    }
+}
+
 impl Expression for Literal {
     fn expression_print(&self) -> String {
         let visitor = AstPrinter {};
@@ -21,5 +29,9 @@ impl Expression for Literal {
     }
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    fn clone_box(&self) -> Box<dyn Expression> {
+        Box::new(self.clone())
     }
 }

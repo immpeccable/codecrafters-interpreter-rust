@@ -1,1 +1,2 @@
-print clock() + 75;
+fun bar() { print 10; }
+bar();

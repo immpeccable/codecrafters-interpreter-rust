@@ -8,6 +8,14 @@ pub struct VariableExpression {
     pub variable: Token,
 }
 
+impl Clone for VariableExpression {
+    fn clone(&self) -> Self {
+        VariableExpression {
+            variable: self.variable.clone(),
+        }
+    }
+}
+
 impl Expression for VariableExpression {
     fn expression_print(&self) -> String {
         return String::from("Visit variable expression");
@@ -19,5 +27,9 @@ impl Expression for VariableExpression {
 
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    fn clone_box(&self) -> Box<dyn Expression> {
+        Box::new(self.clone())
     }
 }
