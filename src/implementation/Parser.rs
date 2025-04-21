@@ -553,7 +553,6 @@ impl Parser {
 
         let mut parameters = Vec::new();
         if !self.check(TokenType::RIGHT_PAREN)? {
-            print!("hello world");
             parameters.push(self.consume(
                 TokenType::IDENTIFIER,
                 String::from("Expect parameter name."),
