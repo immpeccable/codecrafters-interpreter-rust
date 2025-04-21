@@ -2,6 +2,7 @@ use crate::enums::LiteralValue::LiteralValue;
 use crate::implementation::AssignmentExpression::AssignmentExpression;
 use crate::implementation::BinaryExpression::BinaryExpression;
 use crate::implementation::BlockStatement::BlockStatement;
+use crate::implementation::CallExpression::CallExpression;
 use crate::implementation::ExpressionStatement::ExpressionStatement;
 use crate::implementation::Grouping::Grouping;
 use crate::implementation::IfStatement::IfStatement;
@@ -18,6 +19,7 @@ use crate::traits::Expression::Expression;
 use super::Statement::Statement;
 
 pub trait InterpreterTrait {
+    fn define_globals(&mut self);
     fn visit_binary_expression(
         &mut self,
         expression: &mut BinaryExpression,
@@ -44,6 +46,10 @@ pub trait InterpreterTrait {
     fn visit_variable_expression(
         &mut self,
         expression: &VariableExpression,
+    ) -> Result<LiteralValue, String>;
+    fn visit_call_expression(
+        &mut self,
+        expression: &mut CallExpression,
     ) -> Result<LiteralValue, String>;
     fn visit_assignment_expression(
         &mut self,

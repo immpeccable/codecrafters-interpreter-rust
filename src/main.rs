@@ -451,6 +451,7 @@ fn main() {
             };
             let parser_res = parser.parse();
             let mut intp = Interpreter::default();
+            intp.define_globals();
             match parser_res {
                 Ok(mut statements) => intp.interpret(&mut statements),
                 Err(_) => exit(65),

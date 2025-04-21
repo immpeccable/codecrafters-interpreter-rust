@@ -13,6 +13,7 @@ use crate::traits::Statement::Statement;
 
 use super::AssignmentExpression::AssignmentExpression;
 use super::BlockStatement::BlockStatement;
+use super::CallExpression::CallExpression;
 use super::ExpressionStatement::ExpressionStatement;
 use super::IfStatement::IfStatement;
 use super::LogicalExpression::LogicalExpression;
@@ -70,7 +71,7 @@ impl Parser {
         return self.previous();
     }
     fn synchronize(&mut self) -> Result<(), String> {
-        self.advance();
+        self.advance()?;
         while !self.is_at_end()? {
             if self.previous()?.token_type == TokenType::SEMICOLON {
                 return Ok(());
@@ -86,7 +87,7 @@ impl Parser {
                 TokenType::RETURN => return Ok(()),
                 _ => {}
             }
-            self.advance();
+            self.advance()?;
         }
         return Ok(());
     }
@@ -167,20 +168,57 @@ impl Parser {
         }
     }
 
+    fn finish_call(&mut self, callee: Box<dyn Expression>) -> Result<Box<dyn Expression>, String> {
+        let mut arguments = Vec::new();
+        if !self.check(TokenType::RIGHT_PAREN)? {
+            arguments.push(self.expression()?);
+            while self.match_tokens(&vec![TokenType::COMMA])? {
+                if arguments.len() >= 255 {
+                    self.error(
+                        self.peek()?,
+                        String::from("Can't have more than 255 arguments."),
+                    )
+                }
+                arguments.push(self.expression()?);
+            }
+        }
+        let paren = self.consume(
+            TokenType::RIGHT_PAREN,
+            String::from("Expect ')' after arguments."),
+        )?;
+        return Ok(Box::new(CallExpression {
+            callee,
+            paren,
+            arguments,
+        }));
+    }
+
+    fn call(&mut self) -> Result<Box<dyn Expression>, String> {
+        let mut expression = self.primary()?;
+        loop {
+            if self.match_tokens(&vec![TokenType::LEFT_PAREN])? {
+                expression = self.finish_call(expression)?;
+            } else {
+                break;
+            }
+        }
+        return Ok(expression);
+    }
+
     fn unary(&mut self) -> Result<Box<dyn Expression>, String> {
         if self.match_tokens(&[TokenType::BANG, TokenType::MINUS].to_vec())? {
             let operator = self.previous()?;
             match self.unary() {
                 Ok(right) => {
                     return Ok(Box::new(UnaryExpression {
-                        operator: operator,
+                        operator,
                         expression: right,
                     }))
                 }
                 Err(error) => return Err(error),
             }
         }
-        return self.primary();
+        return self.call();
     }
 
     fn factor(&mut self) -> Result<Box<dyn Expression>, String> {

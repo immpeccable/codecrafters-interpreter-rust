@@ -1,4 +1,5 @@
 use core::panic;
+
 use std::{
     collections::HashMap,
     io::{self, Write},
@@ -7,14 +8,17 @@ use std::{
 
 use crate::{
     enums::{LiteralValue::LiteralValue, TokenType::TokenType},
-    traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement},
+    traits::{
+        Expression::Expression, Interpreter::InterpreterTrait, LoxCallableTrait::LoxCallableTrait,
+        Statement::Statement,
+    },
 };
 
 use super::{
     AssignmentExpression::AssignmentExpression, BinaryExpression::BinaryExpression,
-    BlockStatement::BlockStatement, Environment::Environment,
-    ExpressionStatement::ExpressionStatement, Grouping::Grouping, IfStatement::IfStatement,
-    Literal::Literal, PrintStatement::PrintStatement, Token::Token,
+    BlockStatement::BlockStatement, CallExpression::CallExpression, Clock::Clock,
+    Environment::Environment, ExpressionStatement::ExpressionStatement, Grouping::Grouping,
+    IfStatement::IfStatement, Literal::Literal, PrintStatement::PrintStatement, Token::Token,
     UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
     VariableStatement::VariableStatement, WhileStatement::WhileStatement,
 };
@@ -25,6 +29,11 @@ pub struct Interpreter {
 }
 
 impl InterpreterTrait for Interpreter {
+    fn define_globals(&mut self) {
+        self.environment
+            .define(String::from("clock"), LiteralValue::Function(Clock {}));
+    }
+
     fn error(&self, message: String, token: &Token) -> String {
         writeln!(io::stderr(), "{}", message).unwrap();
         writeln!(io::stderr(), "[line {}]", token.line).unwrap();
@@ -49,6 +58,7 @@ impl InterpreterTrait for Interpreter {
                 LiteralValue::String(right_str) => return left_str == right_str,
                 _ => return false,
             },
+            _ => false,
         }
     }
 
@@ -265,6 +275,41 @@ impl InterpreterTrait for Interpreter {
         self.environment
             .assign(expression.name.clone(), value.clone())?;
         return Ok(value.clone());
+    }
+
+    fn visit_call_expression(
+        &mut self,
+        expression: &mut CallExpression,
+    ) -> Result<LiteralValue, String> {
+        let callee = self.evaluate(&mut expression.callee)?;
+
+        let mut arguments = Vec::new();
+
+        for mut arg in &mut expression.arguments {
+            arguments.push(self.evaluate(&mut arg)?);
+        }
+
+        match callee {
+            LiteralValue::Function(mut fnc) => {
+                if arguments.len() != fnc.arity() {
+                    return Err(self.error(
+                        format!(
+                            "Expected {} arguments but got {}.",
+                            fnc.arity(),
+                            arguments.len()
+                        ),
+                        &expression.paren,
+                    ));
+                }
+                return Ok(fnc.call(self, arguments));
+            }
+            _ => {
+                return Err(self.error(
+                    String::from("Can only call functions and classes."),
+                    &expression.paren,
+                ))
+            }
+        }
     }
 
     fn visit_expression_statement(&mut self, statement: &mut ExpressionStatement) {

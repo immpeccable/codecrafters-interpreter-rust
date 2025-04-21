@@ -1,11 +1,14 @@
 use std::fmt;
 
+use crate::implementation::Clock::Clock;
+
 #[derive(PartialEq, Debug, Clone)]
 pub enum LiteralValue {
     Nil,
     Boolean(bool),
-    Number(String), // Number stored as a string.
+    Number(String),
     String(String),
+    Function(Clock),
 }
 
 impl fmt::Display for LiteralValue {
@@ -14,6 +17,7 @@ impl fmt::Display for LiteralValue {
             LiteralValue::Boolean(val) => write!(f, "{}", val),
             LiteralValue::Nil => write!(f, "nil"),
             LiteralValue::String(s) => write!(f, "{}", s),
+            LiteralValue::Function(_) => write!(f, "<native fn>"),
             LiteralValue::Number(s) => {
                 if let Ok(num) = s.parse::<f64>() {
                     // Using default formatting gives us the trimmed version.

@@ -2,6 +2,8 @@ pub mod AssignmentExpression;
 pub mod AstPrinter;
 pub mod BinaryExpression;
 pub mod BlockStatement;
+pub mod CallExpression;
+pub mod Clock;
 pub mod Environment;
 pub mod ExpressionStatement;
 pub mod Grouping;
