@@ -304,6 +304,19 @@ impl InterpreterTrait for Interpreter {
                 }
                 return Ok(fnc.call(self, arguments));
             }
+            LiteralValue::Clock(mut fnc) => {
+                if arguments.len() != fnc.arity() {
+                    return Err(self.error(
+                        format!(
+                            "Expected {} arguments but got {}.",
+                            fnc.arity(),
+                            arguments.len()
+                        ),
+                        &expression.paren,
+                    ));
+                }
+                return Ok(fnc.call(self, arguments));
+            }
             _ => {
                 return Err(self.error(
                     String::from("Can only call functions and classes."),

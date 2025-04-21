@@ -1,2 +1,1 @@
-fun bar() { print 10; }
-bar();
+print clock() + 67;
