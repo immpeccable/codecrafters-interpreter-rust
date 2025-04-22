@@ -12,12 +12,14 @@ use super::{
 
 pub struct LoxFunction {
     pub declaration: FunctionStatement,
+    pub closure: Environment,
 }
 
 impl Clone for LoxFunction {
     fn clone(&self) -> Self {
         LoxFunction {
             declaration: self.declaration.clone(),
+            closure: self.closure.clone(),
         }
     }
 }
@@ -34,7 +36,7 @@ impl LoxCallableTrait for LoxFunction {
     ) -> LiteralValue {
         // 1) Take ownership of the old env, leaving an empty one in its place.
         //    This avoids ever having to clone the old env.
-        let old_env = std::mem::replace(&mut interpreter.environment, Environment::default());
+        let old_env = std::mem::replace(&mut interpreter.environment, self.closure.clone());
 
         // 2) Set up the function's own local scope, chaining to the old one.
         interpreter.environment.enclosing = Some(Box::new(old_env));
@@ -60,7 +62,7 @@ impl LoxCallableTrait for LoxFunction {
         let parent = interpreter.environment.enclosing.take().unwrap();
         interpreter.environment = *parent;
 
-        // 6) Return the function’s return value (or Nil by default).
+        // 6) Return the function's return value (or Nil by default).
         result.unwrap_or(LiteralValue::Nil)
     }
 }

@@ -382,6 +382,7 @@ impl InterpreterTrait for Interpreter {
         let name = statement.name.token_value.clone();
         let fnc = LoxFunction {
             declaration: statement.clone(),
+            closure: self.environment.clone(),
         };
         self.environment.define(name, LiteralValue::Function(fnc));
         return Ok(None);

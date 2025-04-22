@@ -1,13 +1,4 @@
-fun returnArg(arg) {
-  return arg;
+fun f(a) {
+    print a;
 }
-
-fun returnFunCallWithArg(func, arg) {
-  return returnArg(func)(arg);
-}
-
-fun printArg(arg) {
-  print arg;
-}
-
-returnFunCallWithArg(printArg, "foo");
+f(6);
