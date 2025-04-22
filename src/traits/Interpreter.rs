@@ -59,7 +59,6 @@ pub trait InterpreterTrait {
     fn execute_block(
         &mut self,
         statement: &mut Vec<Box<dyn Statement>>,
-        environment: Environment,
     ) -> Result<Option<LiteralValue>, String>;
     fn error(&self, message: String, token: &Token) -> String;
     fn interpret(

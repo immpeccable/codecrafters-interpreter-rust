@@ -31,6 +31,7 @@ impl Environment {
         match self.enclosing.as_mut() {
             Some(parent) => {
                 parent.assign(token.clone(), value)?;
+                return Ok(());
             }
             None => {}
         }

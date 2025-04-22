@@ -399,24 +399,35 @@ impl InterpreterTrait for Interpreter {
         &mut self,
         statement: &mut BlockStatement,
     ) -> Result<Option<LiteralValue>, String> {
-        return Ok(self.execute_block(
-            &mut statement.statements,
-            Environment {
-                values: HashMap::new(),
-                enclosing: Some(Box::new(self.environment.clone())),
-            },
-        )?);
+        // 1) Pop the current env out so we can chain it as the parent.
+        let old_env = std::mem::replace(&mut self.environment, Environment::default());
+        // 2) Link the old env as this new frame's parent.
+        self.environment.enclosing = Some(Box::new(old_env));
+
+        // 3) Execute each statement, stopping on the first return.
+        let mut result = None;
+        for stmt in &mut statement.statements {
+            if let Some(val) = self.execute(stmt)? {
+                result = Some(val);
+                break;
+            }
+        }
+
+        // 4) Pop back up one level.
+        let parent = self
+            .environment
+            .enclosing
+            .take()
+            .expect("block env must have a parent");
+        self.environment = *parent;
+
+        Ok(result)
     }
 
     fn execute_block(
         &mut self,
         statements: &mut Vec<Box<dyn Statement>>,
-        environment: Environment,
     ) -> Result<Option<LiteralValue>, String> {
-        // 1) swap in new env, take old out
-        let old_env = std::mem::replace(&mut self.environment, environment);
-
-        // 2) run statements, but only *capture* the first return
         let mut result = None;
         for stmt in statements {
             let res = self.execute(stmt)?;
@@ -425,11 +436,6 @@ impl InterpreterTrait for Interpreter {
                 break;
             }
         }
-
-        // 3) restore the outer environment no matter what
-        self.environment = old_env;
-
-        // 4) return whatever we captured (or None)
         Ok(result)
     }
 
