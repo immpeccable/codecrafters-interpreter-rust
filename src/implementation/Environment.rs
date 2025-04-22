@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::enums::LiteralValue::LiteralValue;
 
@@ -7,20 +7,23 @@ use super::Token::Token;
 #[derive(Default, Clone)]
 pub struct Environment {
     pub values: HashMap<String, LiteralValue>,
-    pub enclosing: Option<Box<Environment>>,
+    pub enclosing: Option<Rc<RefCell<Environment>>>,
 }
 
 impl Environment {
     pub fn define(&mut self, name: String, value: LiteralValue) {
         self.values.insert(name, value);
     }
-    pub fn get(&mut self, name: String) -> Option<&LiteralValue> {
-        match self.values.get(&name) {
-            Some(v) => Some(v),
-            None => match self.enclosing.as_mut() {
-                Some(parent) => parent.get(name),
-                None => None,
-            },
+    /// Now returns an owned LiteralValue.
+    pub fn get(&self, name: &str) -> Option<LiteralValue> {
+        if let Some(v) = self.values.get(name) {
+            // clone out of the current scope
+            Some(v.clone())
+        } else if let Some(parent) = &self.enclosing {
+            // recurse into parent
+            parent.borrow().get(name)
+        } else {
+            None
         }
     }
     pub fn assign(&mut self, token: Token, value: LiteralValue) -> Result<(), String> {
@@ -30,7 +33,7 @@ impl Environment {
         }
         match self.enclosing.as_mut() {
             Some(parent) => {
-                parent.assign(token.clone(), value)?;
+                parent.borrow_mut().assign(token.clone(), value)?;
                 return Ok(());
             }
             None => {}

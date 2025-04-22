@@ -445,6 +445,9 @@ fn main() {
         }
         "run" => {
             let result = tokenize(file_contents);
+            // for token in &result.tokens {
+            //     println!("{}", token.token_value);
+            // }
             let mut parser = Parser {
                 tokens: result.tokens.clone(),
                 current: 0,

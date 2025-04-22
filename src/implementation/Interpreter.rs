@@ -1,9 +1,11 @@
 use core::panic;
 
 use std::{
+    cell::RefCell,
     collections::HashMap,
     io::{self, Write},
     process::exit,
+    rc::Rc,
 };
 
 use crate::{
@@ -25,14 +27,17 @@ use super::{
     WhileStatement::WhileStatement,
 };
 
+pub type SharedEnv = Rc<RefCell<Environment>>;
+
 #[derive(Default)]
 pub struct Interpreter {
-    pub environment: Environment,
+    pub environment: SharedEnv,
 }
 
 impl InterpreterTrait for Interpreter {
     fn define_globals(&mut self) {
         self.environment
+            .borrow_mut()
             .define(String::from("clock"), LiteralValue::Clock(Clock {}));
     }
 
@@ -242,7 +247,8 @@ impl InterpreterTrait for Interpreter {
     ) -> Result<LiteralValue, String> {
         match self
             .environment
-            .get(expression.variable.token_value.clone())
+            .borrow_mut()
+            .get(expression.variable.token_value.clone().as_str())
         {
             Some(res) => Ok(res.clone()),
             None => Err(self.error(
@@ -278,6 +284,7 @@ impl InterpreterTrait for Interpreter {
     ) -> Result<LiteralValue, String> {
         let value = self.evaluate(&mut expression.value)?;
         self.environment
+            .borrow_mut()
             .assign(expression.name.clone(), value.clone())?;
         return Ok(value.clone());
     }
@@ -306,7 +313,8 @@ impl InterpreterTrait for Interpreter {
                         &expression.paren,
                     ));
                 }
-                return Ok(fnc.call(self, arguments));
+                let res = fnc.call(self, arguments);
+                return Ok(res);
             }
             LiteralValue::Clock(mut fnc) => {
                 if arguments.len() != fnc.arity() {
@@ -319,6 +327,7 @@ impl InterpreterTrait for Interpreter {
                         &expression.paren,
                     ));
                 }
+
                 return Ok(fnc.call(self, arguments));
             }
             _ => {
@@ -343,6 +352,7 @@ impl InterpreterTrait for Interpreter {
     ) -> Result<Option<LiteralValue>, String> {
         let value = &self.evaluate(&mut statement.initializer);
         self.environment
+            .borrow_mut()
             .define(statement.name.token_value.clone(), value.clone().unwrap());
         return Ok(None);
     }
@@ -382,9 +392,11 @@ impl InterpreterTrait for Interpreter {
         let name = statement.name.token_value.clone();
         let fnc = LoxFunction {
             declaration: statement.clone(),
-            closure: self.environment.clone(),
+            closure: Rc::clone(&self.environment),
         };
-        self.environment.define(name, LiteralValue::Function(fnc));
+        self.environment
+            .borrow_mut()
+            .define(name, LiteralValue::Function(fnc));
         return Ok(None);
     }
 
@@ -400,28 +412,27 @@ impl InterpreterTrait for Interpreter {
         &mut self,
         statement: &mut BlockStatement,
     ) -> Result<Option<LiteralValue>, String> {
-        // 1) Pop the current env out so we can chain it as the parent.
-        let old_env = std::mem::replace(&mut self.environment, Environment::default());
-        // 2) Link the old env as this new frame's parent.
-        self.environment.enclosing = Some(Box::new(old_env));
+        // 1) build a brand‑new frame whose parent is the old one
+        let parent = Rc::clone(&self.environment);
+        let child = Rc::new(RefCell::new(Environment {
+            values: HashMap::new(),
+            enclosing: Some(parent),
+        }));
 
-        // 3) Execute each statement, stopping on the first return.
+        // 2) swap it in, saving the old pointer
+        let old = std::mem::replace(&mut self.environment, child);
+
+        // 3) run statements
         let mut result = None;
         for stmt in &mut statement.statements {
-            if let Some(val) = self.execute(stmt)? {
-                result = Some(val);
+            if let Some(v) = self.execute(stmt)? {
+                result = Some(v);
                 break;
             }
         }
 
-        // 4) Pop back up one level.
-        let parent = self
-            .environment
-            .enclosing
-            .take()
-            .expect("block env must have a parent");
-        self.environment = *parent;
-
+        // 4) restore the old pointer
+        self.environment = old;
         Ok(result)
     }
 

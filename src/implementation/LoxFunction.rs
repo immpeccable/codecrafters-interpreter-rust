@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     enums::LiteralValue::LiteralValue,
@@ -6,13 +6,15 @@ use crate::{
 };
 
 use super::{
-    BlockStatement::BlockStatement, Environment::Environment, FunctionStatement::FunctionStatement,
-    Interpreter::Interpreter,
+    BlockStatement::BlockStatement,
+    Environment::Environment,
+    FunctionStatement::FunctionStatement,
+    Interpreter::{Interpreter, SharedEnv},
 };
 
 pub struct LoxFunction {
     pub declaration: FunctionStatement,
-    pub closure: Environment,
+    pub closure: SharedEnv,
 }
 
 impl Clone for LoxFunction {
@@ -34,35 +36,39 @@ impl LoxCallableTrait for LoxFunction {
         interpreter: &mut Interpreter,
         arguments: Vec<LiteralValue>,
     ) -> LiteralValue {
-        // 1) Take ownership of the old env, leaving an empty one in its place.
-        //    This avoids ever having to clone the old env.
-        let old_env = std::mem::replace(&mut interpreter.environment, self.closure.clone());
+        // 1) Build a new, empty frame whose parent is the closure.
+        let parent = Rc::clone(&self.closure);
+        let child = Rc::new(RefCell::new(Environment {
+            values: HashMap::new(),
+            enclosing: Some(parent),
+        }));
 
-        // 2) Set up the function's own local scope, chaining to the old one.
-        interpreter.environment.enclosing = Some(Box::new(old_env));
+        // 2) Swap it into the interpreter, saving the old
+        let old_env = std::mem::replace(&mut interpreter.environment, child);
 
-        // 3) Bind parameters into this fresh, now‐active scope.
-        for (param, arg) in self.declaration.parameters.iter().zip(arguments) {
-            interpreter
-                .environment
-                .define(param.token_value.clone(), arg);
+        // 3) Bind parameters into _this_ frame
+        {
+            let mut env = interpreter.environment.borrow_mut();
+            for (param, arg) in self.declaration.parameters.iter().zip(arguments) {
+                env.define(param.token_value.clone(), arg);
+            }
         }
 
-        // 4) Build and execute the body as a BlockStatement.
-        //    The visit_block_statement method will *not* push another scope—
-        //    it will simply run in the current one, so we get exactly one scope push here.
-        let sts = self.declaration.body.iter().map(|s| s.clone_box());
+        // 4) Execute the function body in that frame
+        let mut body = self
+            .declaration
+            .body
+            .iter()
+            .map(|s| s.clone_box())
+            .collect::<Vec<_>>();
         let result = interpreter
-            .execute_block(&mut sts.collect())
-            .expect("function body must execute");
+            .execute_block(&mut body)
+            .expect("Function body must execute");
 
-        // 5) Pop back to the old environment.
-        //    `enclosing.take()` gives us the Box<old_env> we put there,
-        //    and we move it back into `interpreter.environment`.
-        let parent = interpreter.environment.enclosing.take().unwrap();
-        interpreter.environment = *parent;
+        // 5) Restore the caller’s environment
+        interpreter.environment = old_env;
 
-        // 6) Return the function's return value (or Nil by default).
+        // 6) Return the function’s return‐value or Nil
         result.unwrap_or(LiteralValue::Nil)
     }
 }

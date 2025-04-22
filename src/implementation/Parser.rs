@@ -197,12 +197,14 @@ impl Parser {
 
     fn call(&mut self) -> Result<Box<dyn Expression>, String> {
         let mut expression = self.primary()?;
+        let mut i = 0;
         loop {
             if self.match_tokens(&vec![TokenType::LEFT_PAREN])? {
                 expression = self.finish_call(expression)?;
             } else {
                 break;
             }
+            i += 1
         }
         return Ok(expression);
     }
