@@ -62,19 +62,13 @@ pub fn get_identifier(chars: &mut Peekable<Chars>) -> String {
 pub fn get_if_reserved_keyword(chars: &mut Peekable<Chars>, line: u32) -> Option<Token> {
     let mut word = String::new();
     let mut cloned_chars = chars.clone();
-    let mut count = 0;
 
     while let Some(&ch) = cloned_chars.peek() {
         if !ch.is_alphabetic() {
             break;
         }
-        if count < 6 {
-            word.push(ch);
-            cloned_chars.next();
-            count += 1;
-        } else {
-            break;
-        }
+        word.push(ch);
+        cloned_chars.next();
     }
 
     if let Some(token) = RESERVED_KEYWORDS_MAP.get(word.as_str()).cloned() {

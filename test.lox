@@ -1,11 +1,13 @@
-fun f() {
-var n = 10;
-print n;
-while (n > 0) {
-    n = n - 1;
-}
-print n;
-return n;
+fun returnArg(arg) {
+  return arg;
 }
 
-print f();
+fun returnFunCallWithArg(func, arg) {
+  return returnArg(func)(arg);
+}
+
+fun printArg(arg) {
+  print arg;
+}
+
+returnFunCallWithArg(printArg, "foo");

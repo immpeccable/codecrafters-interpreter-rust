@@ -560,7 +560,7 @@ impl Parser {
     }
 
     fn fun_declaration(&mut self, kind: String) -> Result<Box<dyn Statement>, String> {
-        let name = self.consume(
+        let name: Token = self.consume(
             TokenType::IDENTIFIER,
             String::from(format!("Expect {} name.", kind)),
         )?;
