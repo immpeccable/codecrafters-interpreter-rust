@@ -366,7 +366,10 @@ impl InterpreterTrait for Interpreter {
     ) -> Result<Option<LiteralValue>, String> {
         let mut condition_evaluation = self.evaluate(&mut statement.condition)?;
         while self.is_truthy(&condition_evaluation) {
-            self.execute(&mut statement.body)?;
+            match self.execute(&mut statement.body)? {
+                Some(v) => return Ok(Some(v)),
+                None => {}
+            };
             condition_evaluation = self.evaluate(&mut statement.condition)?;
         }
         return Ok(None);
