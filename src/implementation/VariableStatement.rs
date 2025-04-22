@@ -1,4 +1,5 @@
 use crate::{
+    enums::LiteralValue::LiteralValue,
     traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement},
 };
 
@@ -19,9 +20,12 @@ impl Clone for VariableStatement {
 }
 
 impl Statement for VariableStatement {
-    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) {
+    fn interpret(
+        &mut self,
+        interpreter: &mut dyn InterpreterTrait,
+    ) -> Result<Option<LiteralValue>, String> {
         let _ = interpreter.evaluate(&mut self.initializer);
-        interpreter.visit_variable_statement(self);
+        return interpreter.visit_variable_statement(self);
     }
 
     fn clone_box(&self) -> Box<dyn Statement> {

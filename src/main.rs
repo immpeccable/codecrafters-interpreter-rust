@@ -453,7 +453,10 @@ fn main() {
             let mut intp = Interpreter::default();
             intp.define_globals();
             match parser_res {
-                Ok(mut statements) => intp.interpret(&mut statements),
+                Ok(mut statements) => {
+                    let _ = intp.interpret(&mut statements);
+                    exit(0);
+                }
                 Err(_) => exit(65),
             }
         }

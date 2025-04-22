@@ -1,4 +1,7 @@
-use crate::traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement};
+use crate::{
+    enums::LiteralValue::LiteralValue,
+    traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement},
+};
 
 pub struct WhileStatement {
     pub condition: Box<dyn Expression>,
@@ -15,8 +18,11 @@ impl Clone for WhileStatement {
 }
 
 impl Statement for WhileStatement {
-    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) {
-        interpreter.visit_while_statement(self);
+    fn interpret(
+        &mut self,
+        interpreter: &mut dyn InterpreterTrait,
+    ) -> Result<Option<LiteralValue>, String> {
+        return interpreter.visit_while_statement(self);
     }
 
     fn clone_box(&self) -> Box<dyn Statement> {

@@ -19,6 +19,7 @@ use super::FunctionStatement::FunctionStatement;
 use super::IfStatement::IfStatement;
 use super::LogicalExpression::LogicalExpression;
 use super::PrintStatement::PrintStatement;
+use super::ReturnStatement::ReturnStatement;
 use super::VariableExpression::VariableExpression;
 use super::VariableStatement::VariableStatement;
 use super::WhileStatement::WhileStatement;
@@ -500,6 +501,21 @@ impl Parser {
         });
     }
 
+    fn return_statement(&mut self) -> Result<ReturnStatement, String> {
+        let keyword = self.previous()?;
+        let mut value: Box<dyn Expression> = Box::new(Literal {
+            value: LiteralValue::Nil,
+        });
+        if !self.check(TokenType::SEMICOLON)? {
+            value = self.expression()?;
+        }
+        self.consume(
+            TokenType::SEMICOLON,
+            "Expect ';' after return value.".to_string(),
+        )?;
+        Ok(ReturnStatement { keyword, value })
+    }
+
     fn statement(&mut self) -> Result<Box<dyn Statement>, String> {
         if self.match_tokens(&vec![TokenType::PRINT])? {
             Ok(Box::new(self.print_statement()?))
@@ -511,6 +527,8 @@ impl Parser {
             return Ok(Box::new(self.while_statement()?));
         } else if self.match_tokens(&vec![TokenType::FOR])? {
             return Ok(self.for_statement()?);
+        } else if self.match_tokens(&vec![TokenType::RETURN])? {
+            return Ok(Box::new(self.return_statement()?));
         } else {
             Ok(Box::new(self.expression_statement()?))
         }

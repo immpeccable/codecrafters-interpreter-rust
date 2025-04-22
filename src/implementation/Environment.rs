@@ -4,7 +4,7 @@ use crate::enums::LiteralValue::LiteralValue;
 
 use super::Token::Token;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Environment {
     pub values: HashMap<String, LiteralValue>,
     pub enclosing: Option<Box<Environment>>,

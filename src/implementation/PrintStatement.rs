@@ -16,8 +16,11 @@ impl Clone for PrintStatement {
 }
 
 impl Statement for PrintStatement {
-    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) {
-        interpreter.visit_print_statement(self);
+    fn interpret(
+        &mut self,
+        interpreter: &mut dyn InterpreterTrait,
+    ) -> Result<Option<LiteralValue>, String> {
+        return interpreter.visit_print_statement(self);
     }
 
     fn clone_box(&self) -> Box<dyn Statement> {

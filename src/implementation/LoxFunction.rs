@@ -1,9 +1,14 @@
+use std::collections::HashMap;
+
 use crate::{
     enums::LiteralValue::LiteralValue,
     traits::{Interpreter::InterpreterTrait, LoxCallableTrait::LoxCallableTrait},
 };
 
-use super::{FunctionStatement::FunctionStatement, Interpreter::Interpreter};
+use super::{
+    BlockStatement::BlockStatement, Environment::Environment, FunctionStatement::FunctionStatement,
+    Interpreter::Interpreter,
+};
 
 pub struct LoxFunction {
     pub declaration: FunctionStatement,
@@ -26,8 +31,11 @@ impl LoxCallableTrait for LoxFunction {
         interpreter: &mut Interpreter,
         arguments: Vec<LiteralValue>,
     ) -> LiteralValue {
-        let environment = &mut interpreter.environment;
-        for (index, item) in self.declaration.parameters.iter().enumerate() {
+        let mut environment = Environment {
+            enclosing: Some(Box::new(interpreter.environment.clone())),
+            values: HashMap::new(),
+        };
+        for (index, _) in self.declaration.parameters.iter().enumerate() {
             environment.define(
                 self.declaration
                     .parameters
@@ -38,7 +46,13 @@ impl LoxCallableTrait for LoxFunction {
                 arguments.get(index).unwrap().clone(),
             );
         }
-        interpreter.interpret(&mut self.declaration.body);
-        return LiteralValue::Nil;
+        let mut sts = Vec::new();
+        for st in &self.declaration.body {
+            sts.push(st.clone_box());
+        }
+        match interpreter.execute_block(&mut sts, environment).unwrap() {
+            Some(v) => return v,
+            None => return LiteralValue::Nil,
+        }
     }
 }

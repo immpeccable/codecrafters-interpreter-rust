@@ -19,9 +19,10 @@ use super::{
     BlockStatement::BlockStatement, CallExpression::CallExpression, Clock::Clock,
     Environment::Environment, ExpressionStatement::ExpressionStatement,
     FunctionStatement::FunctionStatement, Grouping::Grouping, IfStatement::IfStatement,
-    Literal::Literal, LoxFunction::LoxFunction, PrintStatement::PrintStatement, Token::Token,
-    UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
-    VariableStatement::VariableStatement, WhileStatement::WhileStatement,
+    Literal::Literal, LoxFunction::LoxFunction, PrintStatement::PrintStatement,
+    ReturnStatement::ReturnStatement, Token::Token, UnaryExpression::UnaryExpression,
+    VariableExpression::VariableExpression, VariableStatement::VariableStatement,
+    WhileStatement::WhileStatement,
 };
 
 #[derive(Default)]
@@ -75,8 +76,11 @@ impl InterpreterTrait for Interpreter {
         return expression.interpret(self);
     }
 
-    fn execute(&mut self, statement: &mut Box<dyn Statement>) {
-        statement.interpret(self);
+    fn execute(
+        &mut self,
+        statement: &mut Box<dyn Statement>,
+    ) -> Result<Option<LiteralValue>, String> {
+        return statement.interpret(self);
     }
 
     fn visit_binary_expression(
@@ -326,15 +330,26 @@ impl InterpreterTrait for Interpreter {
         }
     }
 
-    fn visit_expression_statement(&mut self, statement: &mut ExpressionStatement) {
-        let _ = self.evaluate(&mut statement.expression);
+    fn visit_expression_statement(
+        &mut self,
+        statement: &mut ExpressionStatement,
+    ) -> Result<Option<LiteralValue>, String> {
+        self.evaluate(&mut statement.expression)?;
+        return Ok(None);
     }
-    fn visit_variable_statement(&mut self, statement: &mut VariableStatement) {
+    fn visit_variable_statement(
+        &mut self,
+        statement: &mut VariableStatement,
+    ) -> Result<Option<LiteralValue>, String> {
         let value = &self.evaluate(&mut statement.initializer);
         self.environment
             .define(statement.name.token_value.clone(), value.clone().unwrap());
+        return Ok(None);
     }
-    fn visit_print_statement(&mut self, statement: &mut PrintStatement) {
+    fn visit_print_statement(
+        &mut self,
+        statement: &mut PrintStatement,
+    ) -> Result<Option<LiteralValue>, String> {
         let res = self.evaluate(&mut statement.expression).unwrap();
         match res {
             LiteralValue::Number(n) => {
@@ -342,67 +357,109 @@ impl InterpreterTrait for Interpreter {
             }
             _ => println!("{}", res.to_string()),
         }
+        return Ok(None);
     }
 
-    fn visit_while_statement(&mut self, statement: &mut WhileStatement) -> Result<(), String> {
+    fn visit_while_statement(
+        &mut self,
+        statement: &mut WhileStatement,
+    ) -> Result<Option<LiteralValue>, String> {
         let mut condition_evaluation = self.evaluate(&mut statement.condition)?;
         while self.is_truthy(&condition_evaluation) {
-            self.execute(&mut statement.body);
+            self.execute(&mut statement.body)?;
             condition_evaluation = self.evaluate(&mut statement.condition)?;
         }
-        return Ok(());
+        return Ok(None);
     }
 
     fn visit_function_statement(
         &mut self,
         statement: &mut FunctionStatement,
-    ) -> Result<(), String> {
+    ) -> Result<Option<LiteralValue>, String> {
         let name = statement.name.token_value.clone();
         let fnc = LoxFunction {
             declaration: statement.clone(),
         };
         self.environment.define(name, LiteralValue::Function(fnc));
-        return Ok(());
+        return Ok(None);
     }
 
-    fn visit_block_statement(&mut self, statement: &mut BlockStatement) {
-        // swap out the old env, leaving an empty one in its place
-        let old = std::mem::replace(
-            &mut self.environment,
+    fn visit_return_statement(
+        &mut self,
+        statement: &mut ReturnStatement,
+    ) -> Result<Option<LiteralValue>, String> {
+        let value = self.evaluate(&mut statement.value)?;
+        return Ok(Some(value));
+    }
+
+    fn visit_block_statement(
+        &mut self,
+        statement: &mut BlockStatement,
+    ) -> Result<Option<LiteralValue>, String> {
+        return Ok(self.execute_block(
+            &mut statement.statements,
             Environment {
                 values: HashMap::new(),
-                enclosing: None,
+                enclosing: Some(Box::new(self.environment.clone())),
             },
-        );
-
-        // now create the child, owning the old as its parent
-        self.environment.enclosing = Some(Box::new(old));
-
-        // run the block in that new scope
-        self.interpret(&mut statement.statements);
-
-        // when we're done, pull the parent back out and restore it
-        if let Some(parent_box) = self.environment.enclosing.take() {
-            self.environment = *parent_box;
-        }
+        )?);
     }
 
-    fn visit_if_statement(&mut self, statement: &mut IfStatement) -> Result<(), String> {
-        let condition_evaluate_result = self.evaluate(&mut statement.condition)?;
-        if self.is_truthy(&condition_evaluate_result) {
-            self.execute(&mut statement.then_statement);
-        } else {
-            match &mut statement.else_statement {
-                Some(else_st) => self.execute(else_st),
+    fn execute_block(
+        &mut self,
+        statements: &mut Vec<Box<dyn Statement>>,
+        environment: Environment,
+    ) -> Result<Option<LiteralValue>, String> {
+        // 1) swap in new env, take old out
+        let old_env = std::mem::replace(&mut self.environment, environment);
+
+        // 2) run statements, but only *capture* the first return
+        let mut result = None;
+        for stmt in statements {
+            let res = self.execute(stmt)?;
+            if res.is_some() {
+                result = res;
+                break;
+            }
+        }
+
+        // 3) restore the outer environment no matter what
+        self.environment = old_env;
+
+        // 4) return whatever we captured (or None)
+        Ok(result)
+    }
+
+    fn visit_if_statement(
+        &mut self,
+        statement: &mut IfStatement,
+    ) -> Result<Option<LiteralValue>, String> {
+        let condition = self.evaluate(&mut statement.condition)?;
+        if self.is_truthy(&condition) {
+            // *Propagate* whatever the then‐branch returns (Some or None)
+            return self.execute(&mut statement.then_statement);
+        } else if let Some(else_branch) = &mut statement.else_statement {
+            // Likewise for an else branch
+            return self.execute(else_branch);
+        }
+        // No return executed, fall through
+        Ok(None)
+    }
+
+    fn interpret(
+        &mut self,
+        statements: &mut Vec<Box<dyn Statement>>,
+    ) -> Result<Option<LiteralValue>, String> {
+        let mut ret_val = None;
+        for statement in statements {
+            match self.execute(statement)? {
+                Some(rv) => {
+                    ret_val = Some(rv);
+                    break;
+                }
                 None => {}
-            };
+            }
         }
-        return Ok(());
-    }
-
-    fn interpret(&mut self, statements: &mut Vec<Box<dyn Statement>>) {
-        for mut statement in statements {
-            self.execute(&mut statement);
-        }
+        return Ok(ret_val);
     }
 }

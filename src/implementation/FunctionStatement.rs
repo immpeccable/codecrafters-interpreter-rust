@@ -1,4 +1,7 @@
-use crate::traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement};
+use crate::{
+    enums::LiteralValue::LiteralValue,
+    traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement},
+};
 
 use super::Token::Token;
 
@@ -19,8 +22,11 @@ impl Clone for FunctionStatement {
 }
 
 impl Statement for FunctionStatement {
-    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) {
-        let _ = interpreter.visit_function_statement(self);
+    fn interpret(
+        &mut self,
+        interpreter: &mut dyn InterpreterTrait,
+    ) -> Result<Option<LiteralValue>, String> {
+        return interpreter.visit_function_statement(self);
     }
 
     fn clone_box(&self) -> Box<dyn Statement> {

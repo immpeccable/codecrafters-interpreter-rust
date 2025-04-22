@@ -20,8 +20,11 @@ impl Clone for IfStatement {
 }
 
 impl Statement for IfStatement {
-    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) {
-        interpreter.visit_if_statement(self);
+    fn interpret(
+        &mut self,
+        interpreter: &mut dyn InterpreterTrait,
+    ) -> Result<Option<LiteralValue>, String> {
+        return interpreter.visit_if_statement(self);
     }
 
     fn clone_box(&self) -> Box<dyn Statement> {
