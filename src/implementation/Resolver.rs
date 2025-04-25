@@ -160,15 +160,16 @@ impl Resolver {
     }
 
     fn declare(&mut self, name: &Token) {
+        let scope_len = self.scopes.len();
         if let Some(scope) = self.scopes.last_mut() {
-            // if scope.contains_key(&name.token_value) {
-            //     self.error(
-            //         String::from("Already a variable with this name in this scope."),
-            //         name,
-            //     );
-            // } else {
-            scope.insert(name.token_value.clone(), false);
-            // }
+            if scope.contains_key(&name.token_value) && scope_len > 1 {
+                self.error(
+                    String::from("Already a variable with this name in this scope."),
+                    name,
+                );
+            } else {
+                scope.insert(name.token_value.clone(), false);
+            }
         }
     }
 
