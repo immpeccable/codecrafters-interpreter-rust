@@ -46,16 +46,16 @@ impl Resolver {
     }
 
     pub fn visit_variable_expression(&mut self, expression: &mut VariableExpression) {
-        // if let Some(scope) = self.scopes.last_mut() {
-        //     if let Some(v) = scope.get(&expression.variable.token_value) {
-        //         if *v == false {
-        //             self.error(
-        //                 String::from("Can't read local variable in its own initializer."),
-        //                 &expression.variable,
-        //             );
-        //         }
-        //     }
-        // }
+        if let Some(scope) = self.scopes.last_mut() {
+            if let Some(v) = scope.get(&expression.variable.token_value) {
+                if *v == false && self.scopes.len() > 1 {
+                    self.error(
+                        String::from("Can't read local variable in its own initializer."),
+                        &expression.variable,
+                    );
+                }
+            }
+        }
 
         let variable_token = expression.variable.clone();
 
@@ -135,7 +135,7 @@ impl Resolver {
     fn error(&self, message: String, token: &Token) {
         writeln!(io::stderr(), "{}", message).unwrap();
         writeln!(io::stderr(), "[line {}]", token.line).unwrap();
-        exit(70);
+        exit(65);
     }
 
     fn resolve_function(&mut self, statement: &mut FunctionStatement, ft: FunctionType) {
@@ -167,7 +167,7 @@ impl Resolver {
             //         name,
             //     );
             // } else {
-                scope.insert(name.token_value.clone(), false);
+            scope.insert(name.token_value.clone(), false);
             // }
         }
     }
