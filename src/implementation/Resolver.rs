@@ -1,7 +1,6 @@
 use std::{
     collections::HashMap,
     io::{self, Write},
-    os::macos::raw::stat,
     process::exit,
 };
 
@@ -134,7 +133,7 @@ impl Resolver {
     pub fn visit_literal_expression(&mut self, _expression: &mut Literal) {}
     pub fn visit_class_statement(&mut self, statement: &mut ClassStatement) {
         self.declare(&statement.name);
-        self.declare(&statement.name);
+        self.define(&statement.name);
     }
 
     fn error(&self, message: String, token: &Token) {

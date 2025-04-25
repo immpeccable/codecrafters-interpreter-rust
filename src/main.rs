@@ -457,7 +457,6 @@ fn main() {
             };
             let parser_res = parser.parse();
             let mut intp = Interpreter::default();
-
             intp.define_globals();
             let mut resolver = Resolver {
                 scopes: Vec::from([HashMap::new()]),
@@ -468,6 +467,7 @@ fn main() {
             match parser_res {
                 Ok(mut statements) => {
                     let _r = resolver.resolve_statements(&mut statements);
+
                     let _i = (&mut resolver.interpreter).interpret(&mut statements);
                     exit(0);
                 }
