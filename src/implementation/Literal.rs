@@ -24,7 +24,14 @@ impl Expression for Literal {
         return visitor.visit_literal(self);
     }
 
-    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) -> Result<LiteralValue, String> {
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_literal_expression(self);
+    }
+
+    fn interpret(
+        &mut self,
+        interpreter: &mut dyn InterpreterTrait,
+    ) -> Result<LiteralValue, String> {
         return interpreter.visit_literal(self);
     }
     fn as_any(&self) -> &dyn Any {

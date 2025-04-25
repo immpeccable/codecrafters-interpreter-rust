@@ -22,6 +22,9 @@ impl Statement for ExpressionStatement {
     ) -> Result<Option<LiteralValue>, String> {
         return interpreter.visit_expression_statement(self);
     }
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_expression_statement(self);
+    }
 
     fn clone_box(&self) -> Box<dyn Statement> {
         Box::new(self.clone())

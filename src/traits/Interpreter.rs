@@ -23,6 +23,12 @@ use super::Statement::Statement;
 
 pub trait InterpreterTrait {
     fn define_globals(&mut self);
+    fn resolve(&mut self, expression: &mut dyn Expression, depth: usize);
+    fn look_up_variable(
+        &mut self,
+        token: &Token,
+        expression: &dyn Expression,
+    ) -> Result<LiteralValue, String>;
     fn visit_binary_expression(
         &mut self,
         expression: &mut BinaryExpression,

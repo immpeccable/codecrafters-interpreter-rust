@@ -29,6 +29,10 @@ impl Statement for FunctionStatement {
         return interpreter.visit_function_statement(self);
     }
 
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_function_statement(self);
+    }
+
     fn clone_box(&self) -> Box<dyn Statement> {
         Box::new(self.clone())
     }

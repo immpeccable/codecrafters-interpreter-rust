@@ -35,6 +35,10 @@ impl Expression for CallExpression {
         self
     }
 
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_call_expression(self);
+    }
+
     fn clone_box(&self) -> Box<dyn Expression> {
         Box::new(self.clone())
     }

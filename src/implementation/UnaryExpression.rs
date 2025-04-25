@@ -30,6 +30,10 @@ impl Expression for UnaryExpression {
         self
     }
 
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_unary_expression(self);
+    }
+
     fn interpret(
         &mut self,
         interpreter: &mut dyn InterpreterTrait,

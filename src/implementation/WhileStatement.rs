@@ -25,6 +25,10 @@ impl Statement for WhileStatement {
         return interpreter.visit_while_statement(self);
     }
 
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_while_statement(self);
+    }
+
     fn clone_box(&self) -> Box<dyn Statement> {
         Box::new(self.clone())
     }

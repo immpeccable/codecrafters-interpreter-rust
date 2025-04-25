@@ -28,6 +28,10 @@ impl Statement for VariableStatement {
         return interpreter.visit_variable_statement(self);
     }
 
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_variable_statement(self);
+    }
+
     fn clone_box(&self) -> Box<dyn Statement> {
         Box::new(self.clone())
     }

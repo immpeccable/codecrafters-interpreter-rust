@@ -23,6 +23,10 @@ impl Statement for PrintStatement {
         return interpreter.visit_print_statement(self);
     }
 
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_print_statement(self);
+    }
+
     fn clone_box(&self) -> Box<dyn Statement> {
         Box::new(self.clone())
     }

@@ -19,6 +19,9 @@ impl Clone for AssignmentExpression {
 }
 
 impl Expression for AssignmentExpression {
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_assignment_expression(self);
+    }
     fn expression_print(&self) -> String {
         return String::from("Visit variable expression");
     }

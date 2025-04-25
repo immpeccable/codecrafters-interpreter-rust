@@ -24,6 +24,10 @@ impl Expression for LogicalExpression {
     fn expression_print(&self) -> String {
         return String::from("zz");
     }
+
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_logical_expression(self);
+    }
     fn interpret(
         &mut self,
         interpreter: &mut dyn InterpreterTrait,

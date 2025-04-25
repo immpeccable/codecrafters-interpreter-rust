@@ -8,6 +8,8 @@ use std::{
     rc::Rc,
 };
 
+use crate::implementation::Environment::EnvExt;
+
 use crate::{
     enums::{LiteralValue::LiteralValue, TokenType::TokenType},
     traits::{
@@ -32,6 +34,7 @@ pub type SharedEnv = Rc<RefCell<Environment>>;
 #[derive(Default)]
 pub struct Interpreter {
     pub environment: SharedEnv,
+    pub locals: HashMap<*const dyn Expression, usize>,
 }
 
 impl InterpreterTrait for Interpreter {
@@ -39,6 +42,11 @@ impl InterpreterTrait for Interpreter {
         self.environment
             .borrow_mut()
             .define(String::from("clock"), LiteralValue::Clock(Clock {}));
+    }
+
+    fn resolve(&mut self, expression: &mut dyn Expression, depth: usize) {
+        let ptr: *const dyn Expression = expression as *const dyn Expression;
+        self.locals.insert(ptr, depth);
     }
 
     fn error(&self, message: String, token: &Token) -> String {
@@ -241,24 +249,39 @@ impl InterpreterTrait for Interpreter {
             op => panic!("Unexpected unary operator: {:?}", op),
         }
     }
+
+    fn look_up_variable(
+        &mut self,
+        token: &Token,
+        expr: &dyn Expression,
+    ) -> Result<LiteralValue, String> {
+        // Get a raw pointer to the trait‐object behind `expr`
+        let ptr: *const dyn Expression = expr as *const dyn Expression;
+
+        // See if we resolved it to some local depth
+        if let Some(&distance) = self.locals.get(&ptr) {
+            // get_at returns Option<LiteralValue>
+            self.environment
+                .get_at(distance, &token.token_value)
+                .ok_or_else(|| {
+                    self.error(format!("Undefined variable {}.", token.token_value), token)
+                })
+        } else {
+            self.environment
+                .borrow_mut()
+                .get(&token.token_value)
+                .ok_or_else(|| {
+                    self.error(format!("Undefined variable {}.", token.token_value), token)
+                })
+        }
+    }
+
+    /// Visitor for your VariableExpression node
     fn visit_variable_expression(
         &mut self,
         expression: &VariableExpression,
     ) -> Result<LiteralValue, String> {
-        match self
-            .environment
-            .borrow_mut()
-            .get(expression.variable.token_value.clone().as_str())
-        {
-            Some(res) => Ok(res.clone()),
-            None => Err(self.error(
-                String::from(format!(
-                    "Undefined variable {}.",
-                    &expression.variable.token_value
-                )),
-                &expression.variable,
-            )),
-        }
+        self.look_up_variable(&expression.variable, expression)
     }
 
     fn visit_logical_expression(
@@ -283,9 +306,18 @@ impl InterpreterTrait for Interpreter {
         expression: &mut AssignmentExpression,
     ) -> Result<LiteralValue, String> {
         let value = self.evaluate(&mut expression.value)?;
-        self.environment
-            .borrow_mut()
-            .assign(expression.name.clone(), value.clone())?;
+
+        let ptr: *const dyn Expression = expression as *const dyn Expression;
+
+        if let Some(&distance) = self.locals.get(&ptr) {
+            self.environment
+                .assign_at(distance, expression.name.clone(), value.clone())?
+        } else {
+            self.environment
+                .borrow_mut()
+                .assign(expression.name.clone(), value.clone())?;
+        }
+
         return Ok(value.clone());
     }
 

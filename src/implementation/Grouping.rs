@@ -23,11 +23,17 @@ impl Expression for Grouping {
         let visitor = AstPrinter {};
         return visitor.visit_grouping(self);
     }
-    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) -> Result<LiteralValue, String> {
+    fn interpret(
+        &mut self,
+        interpreter: &mut dyn InterpreterTrait,
+    ) -> Result<LiteralValue, String> {
         return interpreter.visit_grouping(self);
     }
     fn as_any(&self) -> &dyn Any {
         self
+    }
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_grouping_expression(self);
     }
 
     fn clone_box(&self) -> Box<dyn Expression> {

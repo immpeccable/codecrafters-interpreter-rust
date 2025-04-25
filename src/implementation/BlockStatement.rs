@@ -1,6 +1,6 @@
 use crate::{
     enums::LiteralValue::LiteralValue,
-    traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement},
+    traits::{Interpreter::InterpreterTrait, Statement::Statement},
 };
 
 pub struct BlockStatement {
@@ -21,6 +21,10 @@ impl Statement for BlockStatement {
         interpreter: &mut dyn InterpreterTrait,
     ) -> Result<Option<LiteralValue>, String> {
         return interpreter.visit_block_statement(self);
+    }
+
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_block_statement(self);
     }
 
     fn clone_box(&self) -> Box<dyn Statement> {

@@ -15,6 +15,7 @@ pub mod LogicalExpression;
 pub mod LoxFunction;
 pub mod Parser;
 pub mod PrintStatement;
+pub mod Resolver;
 pub mod ReturnStatement;
 pub mod Token;
 pub mod UnaryExpression;

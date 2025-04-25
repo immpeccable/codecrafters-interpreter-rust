@@ -21,8 +21,14 @@ impl Expression for VariableExpression {
         return String::from("Visit variable expression");
     }
 
-    fn interpret(&mut self, interpreter: &mut dyn InterpreterTrait) -> Result<LiteralValue, String> {
+    fn interpret(
+        &mut self,
+        interpreter: &mut dyn InterpreterTrait,
+    ) -> Result<LiteralValue, String> {
         return interpreter.visit_variable_expression(&self);
+    }
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_variable_expression(self);
     }
 
     fn as_any(&self) -> &dyn Any {

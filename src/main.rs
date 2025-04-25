@@ -13,6 +13,8 @@ mod utils;
 
 use enums::LiteralValue::LiteralValue;
 use implementation::Interpreter::Interpreter;
+use implementation::Resolver::FunctionType;
+use implementation::Resolver::Resolver;
 use traits::Interpreter::InterpreterTrait;
 use utils::index::{
     consume_until_next_double_quote, consume_until_next_line, get_identifier,
@@ -454,10 +456,18 @@ fn main() {
             };
             let parser_res = parser.parse();
             let mut intp = Interpreter::default();
+
             intp.define_globals();
+            let mut resolver = Resolver {
+                scopes: Vec::new(),
+                interpreter: Box::new(intp),
+                current_function: FunctionType::NONE,
+            };
+
             match parser_res {
                 Ok(mut statements) => {
-                    let _ = intp.interpret(&mut statements);
+                    let _r = resolver.resolve_statements(&mut statements);
+                    let _i = (&mut resolver.interpreter).interpret(&mut statements);
                     exit(0);
                 }
                 Err(_) => exit(65),

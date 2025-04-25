@@ -17,6 +17,11 @@ impl Statement for ReturnStatement {
             value: self.value.clone_box(),
         });
     }
+
+    fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
+        resolver.visit_return_statement(self);
+    }
+
     fn interpret(
         &mut self,
         interpreter: &mut dyn InterpreterTrait,
