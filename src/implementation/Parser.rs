@@ -16,6 +16,7 @@ use crate::traits::Statement::Statement;
 use super::AssignmentExpression::AssignmentExpression;
 use super::BlockStatement::BlockStatement;
 use super::CallExpression::CallExpression;
+use super::ClassStatement::ClassStatement;
 use super::ExpressionStatement::ExpressionStatement;
 use super::FunctionStatement::FunctionStatement;
 use super::IfStatement::IfStatement;
@@ -589,6 +590,26 @@ impl Parser {
         }
     }
 
+    fn class_declaration(&mut self) -> Result<Box<dyn Statement>, String> {
+        let class_name = self.consume(TokenType::IDENTIFIER, String::from("Expect class name."))?;
+        self.consume(
+            TokenType::LEFT_BRACE,
+            String::from("Expect '{' before class body."),
+        )?;
+        let mut methods = Vec::new();
+        while !self.is_at_end()? && !self.check(TokenType::RIGHT_BRACE)? {
+            methods.push(self.fun_declaration("method".to_string())?);
+        }
+        self.consume(
+            TokenType::RIGHT_BRACE,
+            String::from("Expect '}' after class body."),
+        )?;
+        return Ok(Box::new(ClassStatement {
+            name: class_name,
+            methods,
+        }));
+    }
+
     fn fun_declaration(&mut self, kind: String) -> Result<Box<dyn Statement>, String> {
         let name: Token = self.consume(
             TokenType::IDENTIFIER,
@@ -644,6 +665,9 @@ impl Parser {
         }
         if self.match_tokens(&vec![TokenType::FUN])? {
             return self.fun_declaration(String::from("function"));
+        }
+        if self.match_tokens(&vec![TokenType::CLASS])? {
+            return self.class_declaration();
         }
         return self.statement();
     }

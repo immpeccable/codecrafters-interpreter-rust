@@ -1,13 +1,2 @@
-var variable = "global";
-
-{
-  fun f() {
-    print variable;
-  }
-
-  f();
-
-  var variable = "local";
-
-  f();
-}
+class Spaceship {}
+print Spaceship;

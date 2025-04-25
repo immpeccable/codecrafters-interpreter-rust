@@ -3,6 +3,7 @@ use crate::implementation::AssignmentExpression::AssignmentExpression;
 use crate::implementation::BinaryExpression::BinaryExpression;
 use crate::implementation::BlockStatement::BlockStatement;
 use crate::implementation::CallExpression::CallExpression;
+use crate::implementation::ClassStatement::ClassStatement;
 use crate::implementation::Environment::Environment;
 use crate::implementation::ExpressionStatement::ExpressionStatement;
 use crate::implementation::FunctionStatement::FunctionStatement;
@@ -29,6 +30,10 @@ pub trait InterpreterTrait {
         token: &Token,
         expression: &dyn Expression,
     ) -> Result<LiteralValue, String>;
+    fn visit_class_statement(
+        &mut self,
+        statement: &mut ClassStatement,
+    ) -> Result<Option<LiteralValue>, String>;
     fn visit_binary_expression(
         &mut self,
         expression: &mut BinaryExpression,

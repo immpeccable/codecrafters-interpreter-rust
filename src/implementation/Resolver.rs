@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     io::{self, Write},
+    os::macos::raw::stat,
     process::exit,
 };
 
@@ -11,7 +12,7 @@ use crate::{
 
 use super::{
     AssignmentExpression::AssignmentExpression, BinaryExpression::BinaryExpression,
-    BlockStatement::BlockStatement, CallExpression::CallExpression,
+    BlockStatement::BlockStatement, CallExpression::CallExpression, ClassStatement::ClassStatement,
     ExpressionStatement::ExpressionStatement, FunctionStatement::FunctionStatement,
     Grouping::Grouping, IfStatement::IfStatement, Literal::Literal,
     LogicalExpression::LogicalExpression, PrintStatement::PrintStatement,
@@ -131,6 +132,10 @@ impl Resolver {
     }
 
     pub fn visit_literal_expression(&mut self, _expression: &mut Literal) {}
+    pub fn visit_class_statement(&mut self, statement: &mut ClassStatement) {
+        self.declare(&statement.name);
+        self.declare(&statement.name);
+    }
 
     fn error(&self, message: String, token: &Token) {
         writeln!(io::stderr(), "{}", message).unwrap();

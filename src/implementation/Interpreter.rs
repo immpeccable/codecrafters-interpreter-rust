@@ -23,7 +23,7 @@ use super::{
     BlockStatement::BlockStatement, CallExpression::CallExpression, Clock::Clock,
     Environment::Environment, ExpressionStatement::ExpressionStatement,
     FunctionStatement::FunctionStatement, Grouping::Grouping, IfStatement::IfStatement,
-    Literal::Literal, LoxFunction::LoxFunction, PrintStatement::PrintStatement,
+    Literal::Literal, LoxClass::LoxClass, LoxFunction::LoxFunction, PrintStatement::PrintStatement,
     ReturnStatement::ReturnStatement, Token::Token, UnaryExpression::UnaryExpression,
     VariableExpression::VariableExpression, VariableStatement::VariableStatement,
     WhileStatement::WhileStatement,
@@ -93,6 +93,22 @@ impl InterpreterTrait for Interpreter {
         statement: &mut Box<dyn Statement>,
     ) -> Result<Option<LiteralValue>, String> {
         return statement.interpret(self);
+    }
+
+    fn visit_class_statement(
+        &mut self,
+        statement: &mut super::ClassStatement::ClassStatement,
+    ) -> Result<Option<LiteralValue>, String> {
+        self.environment
+            .borrow_mut()
+            .define(statement.name.token_value.clone(), LiteralValue::Nil);
+        let klass = LoxClass {
+            name: statement.name.token_value.clone(),
+        };
+        self.environment
+            .borrow_mut()
+            .assign(statement.name.clone(), LiteralValue::LoxClass(klass))?;
+        return Ok(None);
     }
 
     fn visit_binary_expression(
