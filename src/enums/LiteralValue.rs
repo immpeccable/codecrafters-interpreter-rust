@@ -1,6 +1,8 @@
 use std::fmt;
 
-use crate::implementation::{Clock::Clock, LoxClass::LoxClass, LoxFunction::LoxFunction};
+use crate::implementation::{
+    Clock::Clock, LoxClass::LoxClass, LoxFunction::LoxFunction, LoxInstance::LoxInstance,
+};
 
 #[derive(Clone, Default)]
 pub enum LiteralValue {
@@ -12,6 +14,7 @@ pub enum LiteralValue {
     Clock(Clock),
     Function(LoxFunction),
     LoxClass(LoxClass),
+    LoxIntance(LoxInstance),
 }
 
 impl fmt::Display for LiteralValue {
@@ -27,7 +30,9 @@ impl fmt::Display for LiteralValue {
             LiteralValue::LoxClass(cl) => {
                 write!(f, "{}", cl.name)
             }
-
+            LiteralValue::LoxIntance(ins) => {
+                write!(f, "{} instance", ins.klass.name)
+            }
             LiteralValue::Number(s) => {
                 if let Ok(num) = s.parse::<f64>() {
                     // Using default formatting gives us the trimmed version.

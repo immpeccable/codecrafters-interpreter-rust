@@ -15,6 +15,7 @@ pub mod Literal;
 pub mod LogicalExpression;
 pub mod LoxClass;
 pub mod LoxFunction;
+pub mod LoxInstance;
 pub mod Parser;
 pub mod PrintStatement;
 pub mod Resolver;

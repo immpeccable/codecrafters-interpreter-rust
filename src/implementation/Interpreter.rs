@@ -357,6 +357,20 @@ impl InterpreterTrait for Interpreter {
                 let res = fnc.call(self, arguments);
                 return Ok(res);
             }
+            LiteralValue::LoxClass(mut fnc) => {
+                if arguments.len() != fnc.arity() {
+                    return Err(self.error(
+                        format!(
+                            "Expected {} arguments but got {}.",
+                            fnc.arity(),
+                            arguments.len()
+                        ),
+                        &expression.paren,
+                    ));
+                }
+                let res = fnc.call(self, arguments);
+                return Ok(res);
+            }
             LiteralValue::Clock(mut fnc) => {
                 if arguments.len() != fnc.arity() {
                     return Err(self.error(
