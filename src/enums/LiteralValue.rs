@@ -14,7 +14,7 @@ pub enum LiteralValue {
     Clock(Clock),
     Function(LoxFunction),
     LoxClass(LoxClass),
-    LoxIntance(LoxInstance),
+    LoxInstance(LoxInstance),
 }
 
 impl fmt::Display for LiteralValue {
@@ -30,7 +30,7 @@ impl fmt::Display for LiteralValue {
             LiteralValue::LoxClass(cl) => {
                 write!(f, "{}", cl.name)
             }
-            LiteralValue::LoxIntance(ins) => {
+            LiteralValue::LoxInstance(ins) => {
                 write!(f, "{} instance", ins.klass.name)
             }
             LiteralValue::Number(s) => {

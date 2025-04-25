@@ -24,7 +24,6 @@ impl Statement for VariableStatement {
         &mut self,
         interpreter: &mut dyn InterpreterTrait,
     ) -> Result<Option<LiteralValue>, String> {
-        let _ = interpreter.evaluate(&mut self.initializer);
         return interpreter.visit_variable_statement(self);
     }
 

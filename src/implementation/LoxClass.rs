@@ -19,6 +19,6 @@ impl LoxCallableTrait for LoxClass {
         let instance = LoxInstance {
             klass: self.clone(),
         };
-        return LiteralValue::LoxIntance(instance);
+        return LiteralValue::LoxInstance(instance);
     }
 }
