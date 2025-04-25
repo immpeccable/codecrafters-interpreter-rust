@@ -6,12 +6,14 @@ use std::any::Any;
 
 pub struct VariableExpression {
     pub variable: Token,
+    pub id: u32,
 }
 
 impl Clone for VariableExpression {
     fn clone(&self) -> Self {
         VariableExpression {
             variable: self.variable.clone(),
+            id: self.id.clone(),
         }
     }
 }
@@ -19,6 +21,10 @@ impl Clone for VariableExpression {
 impl Expression for VariableExpression {
     fn expression_print(&self) -> String {
         return String::from("Visit variable expression");
+    }
+
+    fn id(&self) -> u32 {
+        self.id
     }
 
     fn interpret(

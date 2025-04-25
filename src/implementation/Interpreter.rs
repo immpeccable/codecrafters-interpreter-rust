@@ -34,7 +34,7 @@ pub type SharedEnv = Rc<RefCell<Environment>>;
 #[derive(Default)]
 pub struct Interpreter {
     pub environment: SharedEnv,
-    pub locals: HashMap<*const dyn Expression, usize>,
+    pub locals: HashMap<u32, usize>,
 }
 
 impl InterpreterTrait for Interpreter {
@@ -45,8 +45,7 @@ impl InterpreterTrait for Interpreter {
     }
 
     fn resolve(&mut self, expression: &mut dyn Expression, depth: usize) {
-        let ptr: *const dyn Expression = expression as *const dyn Expression;
-        self.locals.insert(ptr, depth);
+        self.locals.insert(expression.id(), depth);
     }
 
     fn error(&self, message: String, token: &Token) -> String {
@@ -255,12 +254,8 @@ impl InterpreterTrait for Interpreter {
         token: &Token,
         expr: &dyn Expression,
     ) -> Result<LiteralValue, String> {
-        // Get a raw pointer to the trait‐object behind `expr`
-        let ptr: *const dyn Expression = expr as *const dyn Expression;
-
         // See if we resolved it to some local depth
-        if let Some(&distance) = self.locals.get(&ptr) {
-            // get_at returns Option<LiteralValue>
+        if let Some(&distance) = self.locals.get(&expr.id()) {
             self.environment
                 .get_at(distance, &token.token_value)
                 .ok_or_else(|| {
@@ -307,9 +302,7 @@ impl InterpreterTrait for Interpreter {
     ) -> Result<LiteralValue, String> {
         let value = self.evaluate(&mut expression.value)?;
 
-        let ptr: *const dyn Expression = expression as *const dyn Expression;
-
-        if let Some(&distance) = self.locals.get(&ptr) {
+        if let Some(&distance) = self.locals.get(&expression.id) {
             self.environment
                 .assign_at(distance, expression.name.clone(), value.clone())?
         } else {

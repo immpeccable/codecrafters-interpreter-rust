@@ -46,16 +46,16 @@ impl Resolver {
     }
 
     pub fn visit_variable_expression(&mut self, expression: &mut VariableExpression) {
-        if let Some(scope) = self.scopes.last_mut() {
-            if let Some(v) = scope.get(&expression.variable.token_value) {
-                if *v == false {
-                    self.error(
-                        String::from("Can't read local variable in its own initializer."),
-                        &expression.variable,
-                    );
-                }
-            }
-        }
+        // if let Some(scope) = self.scopes.last_mut() {
+        //     if let Some(v) = scope.get(&expression.variable.token_value) {
+        //         if *v == false {
+        //             self.error(
+        //                 String::from("Can't read local variable in its own initializer."),
+        //                 &expression.variable,
+        //             );
+        //         }
+        //     }
+        // }
 
         let variable_token = expression.variable.clone();
 
@@ -146,30 +146,29 @@ impl Resolver {
             self.declare(prm);
             self.define(prm);
         }
+        self.resolve_statements(&mut statement.body);
         self.end_scope();
         self.current_function = enclosing_function_type;
     }
 
     fn resolve_local(&mut self, expression: &mut dyn Expression, token: Token) {
-        let mut depth: usize = 0;
-        for scope in self.scopes.iter_mut().rev() {
+        for (depth, scope) in self.scopes.iter_mut().rev().enumerate() {
             if scope.contains_key(&token.token_value) {
-                self.interpreter.resolve(expression, depth);
+                return self.interpreter.resolve(expression, depth);
             }
-            depth += 1;
         }
     }
 
     fn declare(&mut self, name: &Token) {
         if let Some(scope) = self.scopes.last_mut() {
-            if scope.contains_key(&name.token_value) {
-                self.error(
-                    String::from("Already a variable with this name in this scope."),
-                    name,
-                );
-            } else {
+            // if scope.contains_key(&name.token_value) {
+            //     self.error(
+            //         String::from("Already a variable with this name in this scope."),
+            //         name,
+            //     );
+            // } else {
                 scope.insert(name.token_value.clone(), false);
-            }
+            // }
         }
     }
 

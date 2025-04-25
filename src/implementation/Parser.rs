@@ -1,6 +1,8 @@
 use std::io::{self, Write};
 use std::result::Result::{Err, Ok};
 
+use rand::{rng, Rng};
+
 use crate::enums::LiteralValue::LiteralValue;
 use crate::enums::TokenType::TokenType;
 use crate::implementation::BinaryExpression::BinaryExpression;
@@ -128,24 +130,29 @@ impl Parser {
         if self.match_tokens(&[TokenType::FALSE].to_vec())? {
             return Ok(Box::new(Literal {
                 value: LiteralValue::Boolean(false),
+                id: rng().random(),
             }));
         } else if self.match_tokens(&[TokenType::TRUE].to_vec())? {
             return Ok(Box::new(Literal {
                 value: LiteralValue::Boolean(true),
+                id: rng().random(),
             }));
         } else if self.match_tokens(&[TokenType::NIL].to_vec())? {
             return Ok(Box::new(Literal {
                 value: LiteralValue::Nil,
+                id: rng().random(),
             }));
         } else if self.match_tokens(&[TokenType::STRING].to_vec())? {
             let token = self.previous()?;
             return Ok(Box::new(Literal {
                 value: LiteralValue::String(token.token_value),
+                id: rng().random(),
             }));
         } else if self.match_tokens(&[TokenType::NUMBER].to_vec())? {
             let token = self.previous()?;
             return Ok(Box::new(Literal {
                 value: LiteralValue::Number(token.token_value),
+                id: rng().random(),
             }));
         } else if self.match_tokens(&[TokenType::LEFT_PAREN].to_vec())? {
             match self.expression() {
@@ -154,7 +161,10 @@ impl Parser {
                         TokenType::RIGHT_PAREN,
                         "Expect ')' after expression.".to_string(),
                     ) {
-                        Ok(_) => Ok(Box::new(Grouping { expression })),
+                        Ok(_) => Ok(Box::new(Grouping {
+                            expression,
+                            id: rng().random(),
+                        })),
                         Err(error) => Err(error),
                     }
                 }
@@ -162,7 +172,10 @@ impl Parser {
             }
         } else if self.match_tokens(&Vec::from([TokenType::IDENTIFIER]))? {
             let token = self.previous()?;
-            return Ok(Box::new(VariableExpression { variable: token }));
+            return Ok(Box::new(VariableExpression {
+                variable: token,
+                id: rng().random(),
+            }));
         } else {
             let token = self.peek()?;
             self.error(token, "Expect expression.".to_string());
@@ -192,6 +205,7 @@ impl Parser {
             callee,
             paren,
             arguments,
+            id: rng().random(),
         }));
     }
 
@@ -217,6 +231,7 @@ impl Parser {
                     return Ok(Box::new(UnaryExpression {
                         operator,
                         expression: right,
+                        id: rng().random(),
                     }))
                 }
                 Err(error) => return Err(error),
@@ -236,6 +251,7 @@ impl Parser {
                                 left: expression,
                                 operator,
                                 right,
+                                id: rng().random(),
                             })
                         }
                         Err(error) => return Err(error),
@@ -258,6 +274,7 @@ impl Parser {
                                 left: expression,
                                 operator,
                                 right,
+                                id: rng().random(),
                             })
                         }
                         Err(err) => return Err(err),
@@ -288,6 +305,7 @@ impl Parser {
                                 left: expression,
                                 operator,
                                 right,
+                                id: rng().random(),
                             })
                         }
                         Err(err) => return Err(err),
@@ -312,6 +330,7 @@ impl Parser {
                                 left: expression,
                                 operator,
                                 right,
+                                id: rng().random(),
                             })
                         }
                         Err(err) => return Err(err),
@@ -333,6 +352,7 @@ impl Parser {
                 left: expr,
                 operator,
                 right,
+                id: rng().random(),
             })
         }
         return Ok(expr);
@@ -347,6 +367,7 @@ impl Parser {
                 left: expr,
                 operator,
                 right,
+                id: rng().random(),
             })
         }
         return Ok(expr);
@@ -360,7 +381,11 @@ impl Parser {
 
             if let Some(var_expr) = expression.as_any().downcast_ref::<VariableExpression>() {
                 let name = var_expr.variable.clone();
-                return Ok(Box::new(AssignmentExpression { name, value }));
+                return Ok(Box::new(AssignmentExpression {
+                    name,
+                    value,
+                    id: rng().random(),
+                }));
             }
             self.error(equals.clone(), String::from("Invalid assignment target."))
         }
@@ -439,6 +464,7 @@ impl Parser {
             None => {
                 condition = Some(Box::new(Literal {
                     value: LiteralValue::Boolean(true),
+                    id: rng().random(),
                 }))
             }
         }
@@ -507,6 +533,7 @@ impl Parser {
         let keyword = self.previous()?;
         let mut value: Box<dyn Expression> = Box::new(Literal {
             value: LiteralValue::Nil,
+            id: rng().random(),
         });
         if !self.check(TokenType::SEMICOLON)? {
             value = self.expression()?;
@@ -555,6 +582,7 @@ impl Parser {
             None => Ok(Box::new(VariableStatement {
                 initializer: Box::new(Literal {
                     value: LiteralValue::Nil,
+                    id: rng().random(),
                 }),
                 name,
             })),

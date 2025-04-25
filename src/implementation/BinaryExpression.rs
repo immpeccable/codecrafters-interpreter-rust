@@ -10,6 +10,7 @@ pub struct BinaryExpression {
     pub left: Box<dyn Expression>,
     pub right: Box<dyn Expression>,
     pub operator: Token,
+    pub id: u32,
 }
 
 impl Clone for BinaryExpression {
@@ -18,6 +19,7 @@ impl Clone for BinaryExpression {
             left: self.left.clone_box(),
             right: self.right.clone_box(),
             operator: self.operator.clone(),
+            id: self.id,
         }
     }
 }
@@ -26,6 +28,9 @@ impl Expression for BinaryExpression {
     fn expression_print(&self) -> String {
         let visitor = AstPrinter {};
         return visitor.visit_binary_expression(self);
+    }
+    fn id(&self) -> u32 {
+        self.id
     }
     fn interpret(
         &mut self,

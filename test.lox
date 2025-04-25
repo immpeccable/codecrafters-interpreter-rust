@@ -1,13 +1,13 @@
-fun returnArg(arg) {
-  return arg;
-}
+var variable = "global";
 
-fun returnFunCallWithArg(func, arg) {
-  return returnArg(func)(arg);
-}
+{
+  fun f() {
+    print variable;
+  }
 
-fun printArg(arg) {
-  print arg;
-}
+  f();
 
-returnFunCallWithArg(printArg, "quz");
+  var variable = "local";
+
+  f();
+}

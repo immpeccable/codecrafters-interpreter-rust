@@ -7,6 +7,7 @@ use std::any::Any;
 pub struct AssignmentExpression {
     pub name: Token,
     pub value: Box<dyn Expression>,
+    pub id: u32,
 }
 
 impl Clone for AssignmentExpression {
@@ -14,6 +15,7 @@ impl Clone for AssignmentExpression {
         AssignmentExpression {
             name: self.name.clone(),
             value: self.value.clone_box(),
+            id: self.id,
         }
     }
 }
@@ -21,6 +23,10 @@ impl Clone for AssignmentExpression {
 impl Expression for AssignmentExpression {
     fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {
         resolver.visit_assignment_expression(self);
+    }
+
+    fn id(&self) -> u32 {
+        self.id
     }
     fn expression_print(&self) -> String {
         return String::from("Visit variable expression");

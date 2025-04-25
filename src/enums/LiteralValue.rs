@@ -2,8 +2,9 @@ use std::fmt;
 
 use crate::implementation::{Clock::Clock, LoxFunction::LoxFunction};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum LiteralValue {
+    #[default]
     Nil,
     Boolean(bool),
     Number(String),

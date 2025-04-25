@@ -8,6 +8,7 @@ pub struct LogicalExpression {
     pub left: Box<dyn Expression>,
     pub right: Box<dyn Expression>,
     pub operator: Token,
+    pub id: u32,
 }
 
 impl Clone for LogicalExpression {
@@ -16,6 +17,7 @@ impl Clone for LogicalExpression {
             left: self.left.clone_box(),
             right: self.right.clone_box(),
             operator: self.operator.clone(),
+            id: self.id,
         }
     }
 }
@@ -23,6 +25,10 @@ impl Clone for LogicalExpression {
 impl Expression for LogicalExpression {
     fn expression_print(&self) -> String {
         return String::from("zz");
+    }
+
+    fn id(&self) -> u32 {
+        self.id
     }
 
     fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {

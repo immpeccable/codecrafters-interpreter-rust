@@ -10,6 +10,7 @@ use crate::traits::Interpreter::InterpreterTrait;
 pub struct UnaryExpression {
     pub operator: Token,
     pub expression: Box<dyn Expression>,
+    pub id: u32,
 }
 
 impl Clone for UnaryExpression {
@@ -17,6 +18,7 @@ impl Clone for UnaryExpression {
         UnaryExpression {
             operator: self.operator.clone(),
             expression: self.expression.clone_box(),
+            id: self.id,
         }
     }
 }
@@ -28,6 +30,9 @@ impl Expression for UnaryExpression {
     }
     fn as_any(&self) -> &dyn Any {
         self
+    }
+    fn id(&self) -> u32 {
+        self.id
     }
 
     fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {

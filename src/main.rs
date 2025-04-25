@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::io::{self, Write};
@@ -459,7 +460,7 @@ fn main() {
 
             intp.define_globals();
             let mut resolver = Resolver {
-                scopes: Vec::new(),
+                scopes: Vec::from([HashMap::new()]),
                 interpreter: Box::new(intp),
                 current_function: FunctionType::NONE,
             };

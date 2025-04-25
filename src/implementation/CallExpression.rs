@@ -9,6 +9,7 @@ pub struct CallExpression {
     pub callee: Box<dyn Expression>,
     pub paren: Token,
     pub arguments: Vec<Box<dyn Expression>>,
+    pub id: u32,
 }
 
 impl Clone for CallExpression {
@@ -17,6 +18,7 @@ impl Clone for CallExpression {
             callee: self.callee.clone_box(),
             paren: self.paren.clone(),
             arguments: self.arguments.iter().map(|arg| arg.clone_box()).collect(),
+            id: self.id,
         }
     }
 }
@@ -24,6 +26,10 @@ impl Clone for CallExpression {
 impl Expression for CallExpression {
     fn expression_print(&self) -> String {
         return String::from("zzz");
+    }
+
+    fn id(&self) -> u32 {
+        self.id
     }
     fn interpret(
         &mut self,
