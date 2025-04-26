@@ -22,11 +22,11 @@ use super::{
     AssignmentExpression::AssignmentExpression, BinaryExpression::BinaryExpression,
     BlockStatement::BlockStatement, CallExpression::CallExpression, Clock::Clock,
     Environment::Environment, ExpressionStatement::ExpressionStatement,
-    FunctionStatement::FunctionStatement, Grouping::Grouping, IfStatement::IfStatement,
-    Literal::Literal, LoxClass::LoxClass, LoxFunction::LoxFunction, PrintStatement::PrintStatement,
-    ReturnStatement::ReturnStatement, Token::Token, UnaryExpression::UnaryExpression,
-    VariableExpression::VariableExpression, VariableStatement::VariableStatement,
-    WhileStatement::WhileStatement,
+    FunctionStatement::FunctionStatement, GetExpression::GetExpression, Grouping::Grouping,
+    IfStatement::IfStatement, Literal::Literal, LoxClass::LoxClass, LoxFunction::LoxFunction,
+    PrintStatement::PrintStatement, ReturnStatement::ReturnStatement, Token::Token,
+    UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
+    VariableStatement::VariableStatement, WhileStatement::WhileStatement,
 };
 
 pub type SharedEnv = Rc<RefCell<Environment>>;
@@ -328,6 +328,31 @@ impl InterpreterTrait for Interpreter {
         }
 
         return Ok(value.clone());
+    }
+
+    fn visit_get_expression(
+        &mut self,
+        expression: &mut GetExpression,
+    ) -> Result<LiteralValue, String> {
+        let object = self.evaluate(&mut expression.expression)?;
+        match object {
+            LiteralValue::LoxInstance(li) => match li.get(expression.name.clone()) {
+                Some(v) => {
+                    return Ok(v);
+                }
+                None => Err(self.error(
+                    String::from(format!(
+                        "Undefined property '{}'.",
+                        expression.name.token_value
+                    )),
+                    &expression.name,
+                )),
+            },
+            _ => Err(self.error(
+                String::from("Only instances have properties."),
+                &expression.name,
+            )),
+        }
     }
 
     fn visit_call_expression(

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{enums::LiteralValue::LiteralValue, traits::LoxCallableTrait::LoxCallableTrait};
 
 use super::LoxInstance::LoxInstance;
@@ -18,6 +20,7 @@ impl LoxCallableTrait for LoxClass {
     ) -> LiteralValue {
         let instance = LoxInstance {
             klass: self.clone(),
+            fields: HashMap::new(),
         };
         return LiteralValue::LoxInstance(instance);
     }

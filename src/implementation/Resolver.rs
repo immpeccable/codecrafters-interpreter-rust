@@ -13,7 +13,7 @@ use super::{
     AssignmentExpression::AssignmentExpression, BinaryExpression::BinaryExpression,
     BlockStatement::BlockStatement, CallExpression::CallExpression, ClassStatement::ClassStatement,
     ExpressionStatement::ExpressionStatement, FunctionStatement::FunctionStatement,
-    Grouping::Grouping, IfStatement::IfStatement, Literal::Literal,
+    GetExpression::GetExpression, Grouping::Grouping, IfStatement::IfStatement, Literal::Literal,
     LogicalExpression::LogicalExpression, PrintStatement::PrintStatement,
     ReturnStatement::ReturnStatement, Token::Token, UnaryExpression::UnaryExpression,
     VariableExpression::VariableExpression, VariableStatement::VariableStatement,
@@ -66,6 +66,10 @@ impl Resolver {
         expression.value.resolve(self);
         let name = expression.name.clone();
         self.resolve_local(expression, name);
+    }
+
+    pub fn visit_get_expression(&mut self, expression: &mut GetExpression) {
+        expression.expression.resolve(self);
     }
 
     pub fn visit_function_statement(&mut self, statement: &mut FunctionStatement) {

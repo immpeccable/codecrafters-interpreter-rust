@@ -7,6 +7,7 @@ use crate::implementation::ClassStatement::ClassStatement;
 use crate::implementation::Environment::Environment;
 use crate::implementation::ExpressionStatement::ExpressionStatement;
 use crate::implementation::FunctionStatement::FunctionStatement;
+use crate::implementation::GetExpression::GetExpression;
 use crate::implementation::Grouping::Grouping;
 use crate::implementation::IfStatement::IfStatement;
 use crate::implementation::Literal::Literal;
@@ -79,6 +80,10 @@ pub trait InterpreterTrait {
     fn visit_variable_expression(
         &mut self,
         expression: &VariableExpression,
+    ) -> Result<LiteralValue, String>;
+    fn visit_get_expression(
+        &mut self,
+        expression: &mut GetExpression,
     ) -> Result<LiteralValue, String>;
     fn visit_call_expression(
         &mut self,

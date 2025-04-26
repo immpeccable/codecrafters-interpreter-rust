@@ -19,6 +19,7 @@ use super::CallExpression::CallExpression;
 use super::ClassStatement::ClassStatement;
 use super::ExpressionStatement::ExpressionStatement;
 use super::FunctionStatement::FunctionStatement;
+use super::GetExpression::GetExpression;
 use super::IfStatement::IfStatement;
 use super::LogicalExpression::LogicalExpression;
 use super::PrintStatement::PrintStatement;
@@ -216,6 +217,16 @@ impl Parser {
         loop {
             if self.match_tokens(&vec![TokenType::LEFT_PAREN])? {
                 expression = self.finish_call(expression)?;
+            } else if self.match_tokens(&vec![TokenType::DOT])? {
+                let name = self.consume(
+                    TokenType::IDENTIFIER,
+                    String::from("Expect property name after '.'."),
+                )?;
+                expression = Box::new(GetExpression {
+                    expression,
+                    name,
+                    id: rng().random(),
+                })
             } else {
                 break;
             }
