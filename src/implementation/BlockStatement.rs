@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use crate::{
     enums::LiteralValue::LiteralValue,
     traits::{Interpreter::InterpreterTrait, Statement::Statement},
@@ -16,6 +18,9 @@ impl Clone for BlockStatement {
 }
 
 impl Statement for BlockStatement {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
     fn interpret(
         &mut self,
         interpreter: &mut dyn InterpreterTrait,

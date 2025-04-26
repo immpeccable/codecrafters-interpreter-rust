@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use crate::{enums::LiteralValue::LiteralValue, implementation::Resolver::Resolver};
 
 use super::Interpreter::InterpreterTrait;
@@ -9,4 +11,5 @@ pub trait Statement {
     ) -> Result<Option<LiteralValue>, String>;
     fn clone_box(&self) -> Box<dyn Statement>;
     fn resolve(&mut self, resolver: &mut Resolver);
+    fn as_any_mut(&mut self) -> &mut dyn Any;
 }

@@ -3,6 +3,7 @@ use core::panic;
 use std::{
     cell::RefCell,
     collections::HashMap,
+    hash::Hash,
     io::{self, Write},
     process::exit,
     rc::Rc,
@@ -102,8 +103,22 @@ impl InterpreterTrait for Interpreter {
         self.environment
             .borrow_mut()
             .define(statement.name.token_value.clone(), LiteralValue::Nil);
+
+        let mut methods: HashMap<String, LoxFunction> = HashMap::new();
+        for method in &mut statement.methods {
+            if let Some(method_fn) = method.as_any_mut().downcast_mut::<FunctionStatement>() {
+                let fnc = LoxFunction {
+                    declaration: method_fn.clone(),
+                    closure: self.environment.clone(),
+                };
+                methods.insert(method_fn.name.token_value.clone(), fnc);
+            } else {
+                unreachable!("ClassStatement.methods must all be functions");
+            }
+        }
         let klass = LoxClass {
             name: statement.name.token_value.clone(),
+            methods,
         };
         self.environment
             .borrow_mut()

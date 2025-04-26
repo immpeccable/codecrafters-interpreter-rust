@@ -24,6 +24,7 @@ use super::{
 pub enum FunctionType {
     NONE,
     FUNCTION,
+    METHOD,
 }
 
 pub struct Resolver {
@@ -143,6 +144,14 @@ impl Resolver {
     pub fn visit_class_statement(&mut self, statement: &mut ClassStatement) {
         self.declare(&statement.name);
         self.define(&statement.name);
+        for method in &mut statement.methods {
+            let declaration = FunctionType::METHOD;
+            if let Some(method_fn) = method.as_any_mut().downcast_mut::<FunctionStatement>() {
+                self.resolve_function(method_fn, declaration);
+            } else {
+                unreachable!("ClassStatement.methods must all be functions");
+            }
+        }
     }
 
     fn error(&self, message: String, token: &Token) {

@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use crate::{enums::LiteralValue::LiteralValue, traits::Statement::Statement};
 
 use super::Token::Token;
@@ -8,6 +10,9 @@ pub struct ClassStatement {
 }
 
 impl Statement for ClassStatement {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
     fn clone_box(&self) -> Box<dyn Statement> {
         Box::new(ClassStatement {
             name: self.name.clone(),

@@ -12,7 +12,14 @@ pub struct LoxInstance {
 
 impl LoxInstance {
     pub fn get(&self, token: Token) -> Option<LiteralValue> {
-        return self.fields.get(&token.token_value.to_string()).cloned();
+        if self.fields.contains_key(&token.token_value.to_string()) {
+            return self.fields.get(&token.token_value.to_string()).cloned();
+        } else {
+            match self.klass.find_method(token) {
+                Some(v) => Some(LiteralValue::Function(v)),
+                None => None,
+            }
+        }
     }
     pub fn set(&mut self, token: Token, value: LiteralValue) {
         self.fields.insert(token.token_value.to_string(), value);

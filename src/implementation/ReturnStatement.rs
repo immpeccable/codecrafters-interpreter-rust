@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use crate::{
     enums::LiteralValue::LiteralValue,
     traits::{Expression::Expression, Interpreter::InterpreterTrait, Statement::Statement},
@@ -11,6 +13,9 @@ pub struct ReturnStatement {
 }
 
 impl Statement for ReturnStatement {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
     fn clone_box(&self) -> Box<dyn Statement> {
         return Box::new(ReturnStatement {
             keyword: self.keyword.clone(),

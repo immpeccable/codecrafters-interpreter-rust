@@ -1,10 +1,10 @@
-// Basic property setting and getting
-class Spaceship {}
-var falcon = Spaceship();
+class Robot {
+  beep() {
+    print "Beep boop!";
+  }
+}
 
-falcon.name = "Millennium Falcon";
-falcon.speed = 75.5;
+var r2d2 = Robot();
+r2d2.beep();
 
-print "Ship details:";
-print falcon.name;
-print falcon.speed;
+Robot().beep();
