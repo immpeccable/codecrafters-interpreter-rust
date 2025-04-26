@@ -1,13 +1,10 @@
-class Wizard {}
-class Dragon {}
+// Basic property setting and getting
+class Spaceship {}
+var falcon = Spaceship();
 
-// Instantiating classes in a function should work
-fun createCharacters() {
-  var merlin = Wizard();
-  var smaug = Dragon();
-  print "Characters created in fantasy world:";
-  print merlin;
-  print smaug;
-}
+falcon.name = "Millennium Falcon";
+falcon.speed = 75.5;
 
-var mainCharacter = createCharacters();
+print "Ship details:";
+print falcon.name;
+print falcon.speed;

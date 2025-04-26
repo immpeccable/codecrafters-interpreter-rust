@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{enums::LiteralValue::LiteralValue, traits::LoxCallableTrait::LoxCallableTrait};
 
@@ -18,10 +18,10 @@ impl LoxCallableTrait for LoxClass {
         interpreter: &mut super::Interpreter::Interpreter,
         arguments: Vec<crate::enums::LiteralValue::LiteralValue>,
     ) -> LiteralValue {
-        let instance = LoxInstance {
+        let instance_rc = Rc::new(RefCell::new(LoxInstance {
             klass: self.clone(),
             fields: HashMap::new(),
-        };
-        return LiteralValue::LoxInstance(instance);
+        }));
+        return LiteralValue::Instance(instance_rc);
     }
 }

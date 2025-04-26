@@ -15,9 +15,9 @@ use super::{
     ExpressionStatement::ExpressionStatement, FunctionStatement::FunctionStatement,
     GetExpression::GetExpression, Grouping::Grouping, IfStatement::IfStatement, Literal::Literal,
     LogicalExpression::LogicalExpression, PrintStatement::PrintStatement,
-    ReturnStatement::ReturnStatement, Token::Token, UnaryExpression::UnaryExpression,
-    VariableExpression::VariableExpression, VariableStatement::VariableStatement,
-    WhileStatement::WhileStatement,
+    ReturnStatement::ReturnStatement, SetExpression::SetExpression, Token::Token,
+    UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
+    VariableStatement::VariableStatement, WhileStatement::WhileStatement,
 };
 
 #[derive(Clone, PartialEq)]
@@ -70,6 +70,11 @@ impl Resolver {
 
     pub fn visit_get_expression(&mut self, expression: &mut GetExpression) {
         expression.expression.resolve(self);
+    }
+
+    pub fn visit_set_expression(&mut self, expression: &mut SetExpression) {
+        expression.expression.resolve(self);
+        expression.value.resolve(self);
     }
 
     pub fn visit_function_statement(&mut self, statement: &mut FunctionStatement) {

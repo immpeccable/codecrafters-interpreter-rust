@@ -14,4 +14,7 @@ impl LoxInstance {
     pub fn get(&self, token: Token) -> Option<LiteralValue> {
         return self.fields.get(&token.token_value.to_string()).cloned();
     }
+    pub fn set(&mut self, token: Token, value: LiteralValue) {
+        self.fields.insert(token.token_value.to_string(), value);
+    }
 }

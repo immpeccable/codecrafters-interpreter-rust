@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{cell::RefCell, fmt, rc::Rc};
 
 use crate::implementation::{
     Clock::Clock, LoxClass::LoxClass, LoxFunction::LoxFunction, LoxInstance::LoxInstance,
@@ -14,7 +14,7 @@ pub enum LiteralValue {
     Clock(Clock),
     Function(LoxFunction),
     LoxClass(LoxClass),
-    LoxInstance(LoxInstance),
+    Instance(Rc<RefCell<LoxInstance>>),
 }
 
 impl fmt::Display for LiteralValue {
@@ -30,8 +30,9 @@ impl fmt::Display for LiteralValue {
             LiteralValue::LoxClass(cl) => {
                 write!(f, "{}", cl.name)
             }
-            LiteralValue::LoxInstance(ins) => {
-                write!(f, "{} instance", ins.klass.name)
+            LiteralValue::Instance(rc_inst) => {
+                let inst = rc_inst.borrow();
+                write!(f, "{} instance", inst.klass.name)
             }
             LiteralValue::Number(s) => {
                 if let Ok(num) = s.parse::<f64>() {

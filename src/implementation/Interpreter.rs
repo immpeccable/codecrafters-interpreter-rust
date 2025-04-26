@@ -336,7 +336,7 @@ impl InterpreterTrait for Interpreter {
     ) -> Result<LiteralValue, String> {
         let object = self.evaluate(&mut expression.expression)?;
         match object {
-            LiteralValue::LoxInstance(li) => match li.get(expression.name.clone()) {
+            LiteralValue::Instance(li) => match li.borrow_mut().get(expression.name.clone()) {
                 Some(v) => {
                     return Ok(v);
                 }
@@ -348,6 +348,24 @@ impl InterpreterTrait for Interpreter {
                     &expression.name,
                 )),
             },
+            _ => Err(self.error(
+                String::from("Only instances have properties."),
+                &expression.name,
+            )),
+        }
+    }
+
+    fn visit_set_expression(
+        &mut self,
+        expression: &mut super::SetExpression::SetExpression,
+    ) -> Result<LiteralValue, String> {
+        let object = self.evaluate(&mut expression.expression)?;
+        match object {
+            LiteralValue::Instance(li) => {
+                let value = self.evaluate(&mut expression.value)?;
+                li.borrow_mut().set(expression.name.clone(), value.clone());
+                return Ok(value);
+            }
             _ => Err(self.error(
                 String::from("Only instances have properties."),
                 &expression.name,

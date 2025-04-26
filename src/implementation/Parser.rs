@@ -24,6 +24,7 @@ use super::IfStatement::IfStatement;
 use super::LogicalExpression::LogicalExpression;
 use super::PrintStatement::PrintStatement;
 use super::ReturnStatement::ReturnStatement;
+use super::SetExpression::SetExpression;
 use super::VariableExpression::VariableExpression;
 use super::VariableStatement::VariableStatement;
 use super::WhileStatement::WhileStatement;
@@ -395,6 +396,13 @@ impl Parser {
                 let name = var_expr.variable.clone();
                 return Ok(Box::new(AssignmentExpression {
                     name,
+                    value,
+                    id: rng().random(),
+                }));
+            } else if let Some(get_expr) = expression.as_any().downcast_ref::<GetExpression>() {
+                return Ok(Box::new(SetExpression {
+                    expression: get_expr.expression.clone_box(),
+                    name: get_expr.name.clone(),
                     value,
                     id: rng().random(),
                 }));
