@@ -1,6 +1,9 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::{enums::LiteralValue::LiteralValue, traits::LoxCallableTrait::LoxCallableTrait};
+use crate::{
+    enums::{LiteralValue::LiteralValue, TokenType::TokenType},
+    traits::LoxCallableTrait::LoxCallableTrait,
+};
 
 use super::{LoxFunction::LoxFunction, LoxInstance::LoxInstance, Token::Token};
 
@@ -12,6 +15,9 @@ pub struct LoxClass {
 
 impl LoxCallableTrait for LoxClass {
     fn arity(&mut self) -> usize {
+        if let Some(mut initializer) = self.find_method(String::from("this")) {
+            return initializer.arity();
+        }
         return 0;
     }
     fn call(
@@ -19,19 +25,21 @@ impl LoxCallableTrait for LoxClass {
         interpreter: &mut super::Interpreter::Interpreter,
         arguments: Vec<crate::enums::LiteralValue::LiteralValue>,
     ) -> LiteralValue {
-        let instance_rc = Rc::new(RefCell::new(LoxInstance {
+        let lox_instance = Rc::new(RefCell::new(LoxInstance {
             klass: self.clone(),
             fields: HashMap::new(),
         }));
-        return LiteralValue::Instance(instance_rc);
+        if let Some(mut i) = self.find_method(String::from("init")) {
+            let mut binded = i.bind(Rc::clone(&lox_instance));
+            binded.call(interpreter, arguments);
+        }
+
+        return LiteralValue::Instance(lox_instance);
     }
 }
 
 impl LoxClass {
-    pub fn find_method(&self, method_name: Token) -> Option<LoxFunction> {
-        return self
-            .methods
-            .get(&method_name.token_value.to_string())
-            .cloned();
+    pub fn find_method(&self, method_name: String) -> Option<LoxFunction> {
+        return self.methods.get(&method_name).cloned();
     }
 }

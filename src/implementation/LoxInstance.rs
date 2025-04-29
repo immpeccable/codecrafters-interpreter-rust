@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::enums::LiteralValue::LiteralValue;
 
@@ -15,9 +15,9 @@ impl LoxInstance {
         if self.fields.contains_key(&token.token_value.to_string()) {
             return self.fields.get(&token.token_value.to_string()).cloned();
         } else {
-            match self.klass.find_method(token) {
+            match self.klass.find_method(token.token_value) {
                 Some(mut v) => {
-                    let f = v.bind(self);
+                    let f = v.bind(Rc::new(RefCell::new(self.clone())));
                     Some(LiteralValue::Function(f))
                 }
                 None => None,

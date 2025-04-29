@@ -1,7 +1,8 @@
-class Spaceship {
-  identify() {
-    print this;
+class Default {
+  init() {
+    this.x = "bar";
+    this.y = 91;
   }
 }
-
-Spaceship().identify();
+print Default().x;
+print Default().y;

@@ -25,6 +25,7 @@ pub enum FunctionType {
     NONE,
     FUNCTION,
     METHOD,
+    INITIALIZER,
 }
 
 #[derive(Clone, PartialEq)]
@@ -114,6 +115,12 @@ impl Resolver {
                 &statement.keyword,
             )
         }
+        if self.current_function == FunctionType::INITIALIZER {
+            self.error(
+                String::from("Can't return a value from an initializer."),
+                &statement.keyword,
+            );
+        }
         statement.value.resolve(self);
     }
 
@@ -157,8 +164,12 @@ impl Resolver {
         let last = self.scopes.last_mut().unwrap();
         last.insert(String::from("this"), true);
         for method in &mut statement.methods {
-            let declaration = FunctionType::METHOD;
             if let Some(method_fn) = method.as_any_mut().downcast_mut::<FunctionStatement>() {
+                let mut declaration = FunctionType::METHOD;
+                if method_fn.name.token_value.eq("this") {
+                    declaration = FunctionType::INITIALIZER;
+                }
+
                 self.resolve_function(method_fn, declaration);
             } else {
                 unreachable!("ClassStatement.methods must all be functions");

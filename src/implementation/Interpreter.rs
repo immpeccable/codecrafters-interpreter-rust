@@ -111,6 +111,7 @@ impl InterpreterTrait for Interpreter {
                 let fnc = LoxFunction {
                     declaration: method_fn.clone(),
                     closure: self.environment.clone(),
+                    is_initializer: method_fn.name.token_value.eq("this"),
                 };
                 methods.insert(method_fn.name.token_value.clone(), fnc);
             } else {
@@ -514,6 +515,7 @@ impl InterpreterTrait for Interpreter {
         let fnc = LoxFunction {
             declaration: statement.clone(),
             closure: Rc::clone(&self.environment),
+            is_initializer: false,
         };
         self.environment
             .borrow_mut()
