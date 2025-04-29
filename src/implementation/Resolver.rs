@@ -166,7 +166,7 @@ impl Resolver {
         for method in &mut statement.methods {
             if let Some(method_fn) = method.as_any_mut().downcast_mut::<FunctionStatement>() {
                 let mut declaration = FunctionType::METHOD;
-                if method_fn.name.token_value.eq("this") {
+                if method_fn.name.token_value.eq("init") {
                     declaration = FunctionType::INITIALIZER;
                 }
 

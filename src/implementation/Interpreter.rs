@@ -11,6 +11,7 @@ use std::{
 };
 
 use crate::implementation::Environment::EnvExt;
+use crate::implementation::LoxInstance::LoxInstanceExt;
 
 use crate::{
     enums::{LiteralValue::LiteralValue, TokenType::TokenType},
@@ -111,7 +112,7 @@ impl InterpreterTrait for Interpreter {
                 let fnc = LoxFunction {
                     declaration: method_fn.clone(),
                     closure: self.environment.clone(),
-                    is_initializer: method_fn.name.token_value.eq("this"),
+                    is_initializer: method_fn.name.token_value.eq("init"),
                 };
                 methods.insert(method_fn.name.token_value.clone(), fnc);
             } else {
@@ -360,7 +361,7 @@ impl InterpreterTrait for Interpreter {
     ) -> Result<LiteralValue, String> {
         let object = self.evaluate(&mut expression.expression)?;
         match object {
-            LiteralValue::Instance(li) => match li.borrow_mut().get(expression.name.clone()) {
+            LiteralValue::Instance(li) => match li.get(expression.name.clone()) {
                 Some(v) => {
                     return Ok(v);
                 }
@@ -387,7 +388,7 @@ impl InterpreterTrait for Interpreter {
         match object {
             LiteralValue::Instance(li) => {
                 let value = self.evaluate(&mut expression.value)?;
-                li.borrow_mut().set(expression.name.clone(), value.clone());
+                li.set(expression.name.clone(), value.clone());
                 return Ok(value);
             }
             _ => Err(self.error(

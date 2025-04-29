@@ -10,22 +10,27 @@ pub struct LoxInstance {
     pub fields: HashMap<String, LiteralValue>,
 }
 
-impl LoxInstance {
-    pub fn get(&mut self, token: Token) -> Option<LiteralValue> {
-        if self.fields.contains_key(&token.token_value.to_string()) {
-            return self.fields.get(&token.token_value.to_string()).cloned();
+/// A small helper so we can write `rc_inst.get(token)`
+pub trait LoxInstanceExt {
+    fn get(&self, token: Token) -> Option<LiteralValue>;
+    fn set(&self, token: Token, value: LiteralValue);
+}
+
+impl LoxInstanceExt for Rc<RefCell<LoxInstance>> {
+    fn get(&self, token: Token) -> Option<LiteralValue> {
+        let inst = self.borrow();
+        if let Some(val) = inst.fields.get(&token.token_value) {
+            Some(val.clone())
+        } else if let Some(mut method) = inst.klass.find_method(token.token_value.clone()) {
+            let bound = method.bind(Rc::clone(self));
+            Some(LiteralValue::Function(bound))
         } else {
-            match self.klass.find_method(token.token_value) {
-                Some(mut v) => {
-                    let f = v.bind(Rc::new(RefCell::new(self.clone())));
-                    Some(LiteralValue::Function(f))
-                }
-                None => None,
-            }
+            None
         }
     }
 
-    pub fn set(&mut self, token: Token, value: LiteralValue) {
-        self.fields.insert(token.token_value.to_string(), value);
+    fn set(&self, token: Token, value: LiteralValue) {
+        let mut inst = self.borrow_mut();
+        inst.fields.insert(token.token_value, value);
     }
 }

@@ -30,21 +30,27 @@ impl Clone for LoxFunction {
 }
 
 impl LoxFunction {
-    pub fn bind(&mut self, instance: Rc<RefCell<LoxInstance>>) -> LoxFunction {
-        let parent = Rc::clone(&self.closure);
-        let child = Rc::new(RefCell::new(Environment {
-            values: HashMap::new(),
-            enclosing: Some(parent),
-        }));
-        child
-            .borrow_mut()
-            .define(String::from("this"), LiteralValue::Instance(instance));
-
-        return LoxFunction {
-            declaration: self.declaration.clone(),
-            closure: child,
-            is_initializer: self.is_initializer,
+    pub fn bind(&self, instance: Rc<RefCell<LoxInstance>>) -> LoxFunction {
+        // 1) Create a new child environment whose parent is our closure
+        let env = {
+            let mut map = HashMap::new();
+            // Define "this" in that new scope
+            map.insert(
+                "this".to_string(),
+                LiteralValue::Instance(Rc::clone(&instance)),
+            );
+            Rc::new(RefCell::new(Environment {
+                values: map,
+                enclosing: Some(Rc::clone(&self.closure)),
+            }))
         };
+
+        // 2) Return a fresh LoxFunction with the bound environment
+        LoxFunction {
+            declaration: self.declaration.clone(),
+            closure: env,
+            is_initializer: self.is_initializer,
+        }
     }
 }
 
@@ -63,10 +69,6 @@ impl LoxCallableTrait for LoxFunction {
             values: HashMap::new(),
             enclosing: Some(parent),
         }));
-
-        if self.is_initializer {
-            return self.closure.get_at(0, "this").unwrap();
-        }
 
         // 2) Swap it into the interpreter, saving the old
         let old_env = std::mem::replace(&mut interpreter.environment, child);
@@ -91,6 +93,10 @@ impl LoxCallableTrait for LoxFunction {
             .expect("Function body must execute");
 
         interpreter.environment = old_env;
+
+        if self.is_initializer {
+            return self.closure.get_at(0, "this").unwrap();
+        }
 
         // 6) Return the function’s return‐value or Nil
         result.unwrap_or(LiteralValue::Nil)

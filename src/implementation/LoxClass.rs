@@ -15,7 +15,7 @@ pub struct LoxClass {
 
 impl LoxCallableTrait for LoxClass {
     fn arity(&mut self) -> usize {
-        if let Some(mut initializer) = self.find_method(String::from("this")) {
+        if let Some(mut initializer) = self.find_method(String::from("init")) {
             return initializer.arity();
         }
         return 0;
@@ -29,7 +29,7 @@ impl LoxCallableTrait for LoxClass {
             klass: self.clone(),
             fields: HashMap::new(),
         }));
-        if let Some(mut i) = self.find_method(String::from("init")) {
+        if let Some(i) = self.find_method(String::from("init")) {
             let mut binded = i.bind(Rc::clone(&lox_instance));
             binded.call(interpreter, arguments);
         }
