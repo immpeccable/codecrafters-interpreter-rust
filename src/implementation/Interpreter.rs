@@ -528,8 +528,13 @@ impl InterpreterTrait for Interpreter {
         &mut self,
         statement: &mut ReturnStatement,
     ) -> Result<Option<LiteralValue>, String> {
-        let value = self.evaluate(&mut statement.value)?;
-        return Ok(Some(value));
+        match &mut statement.value {
+            Some(v) => {
+                let value = self.evaluate(v)?;
+                return Ok(Some(value));
+            }
+            None => Ok(None),
+        }
     }
 
     fn visit_block_statement(

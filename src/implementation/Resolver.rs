@@ -109,19 +109,24 @@ impl Resolver {
     }
 
     pub fn visit_return_statement(&mut self, statement: &mut ReturnStatement) {
-        if self.current_function == FunctionType::NONE {
-            self.error(
-                String::from("Can't return from top-level code."),
-                &statement.keyword,
-            )
+        match &mut statement.value {
+            Some(v) => {
+                if self.current_function == FunctionType::NONE {
+                    self.error(
+                        String::from("Can't return from top-level code."),
+                        &statement.keyword,
+                    )
+                }
+                if self.current_function == FunctionType::INITIALIZER {
+                    self.error(
+                        String::from("Can't return a value from an initializer."),
+                        &statement.keyword,
+                    );
+                }
+                v.resolve(self);
+            }
+            None => {}
         }
-        if self.current_function == FunctionType::INITIALIZER {
-            self.error(
-                String::from("Can't return a value from an initializer."),
-                &statement.keyword,
-            );
-        }
-        statement.value.resolve(self);
     }
 
     pub fn visit_while_statement(&mut self, statement: &mut WhileStatement) {

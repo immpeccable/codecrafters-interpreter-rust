@@ -9,7 +9,7 @@ use super::Token::Token;
 
 pub struct ReturnStatement {
     pub keyword: Token,
-    pub value: Box<dyn Expression>,
+    pub value: Option<Box<dyn Expression>>,
 }
 
 impl Statement for ReturnStatement {
@@ -17,10 +17,16 @@ impl Statement for ReturnStatement {
         self
     }
     fn clone_box(&self) -> Box<dyn Statement> {
-        return Box::new(ReturnStatement {
-            keyword: self.keyword.clone(),
-            value: self.value.clone_box(),
-        });
+        match &self.value {
+            Some(v) => Box::new(ReturnStatement {
+                keyword: self.keyword.clone(),
+                value: Some(v.clone_box()),
+            }),
+            None => Box::new(ReturnStatement {
+                keyword: self.keyword.clone(),
+                value: None,
+            }),
+        }
     }
 
     fn resolve(&mut self, resolver: &mut super::Resolver::Resolver) {

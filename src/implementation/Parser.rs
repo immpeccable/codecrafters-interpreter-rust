@@ -558,12 +558,9 @@ impl Parser {
 
     fn return_statement(&mut self) -> Result<ReturnStatement, String> {
         let keyword = self.previous()?;
-        let mut value: Box<dyn Expression> = Box::new(Literal {
-            value: LiteralValue::Nil,
-            id: rng().random(),
-        });
+        let mut value: Option<Box<dyn Expression>> = None;
         if !self.check(TokenType::SEMICOLON)? {
-            value = self.expression()?;
+            value = Some(self.expression()?);
         }
         self.consume(
             TokenType::SEMICOLON,

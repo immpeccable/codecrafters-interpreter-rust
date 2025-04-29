@@ -1,8 +1,8 @@
-class Default {
+class Person {
   init() {
-    this.x = "bar";
-    this.y = 91;
+    print "world";
+    return;
   }
 }
-print Default().x;
-print Default().y;
+
+Person();
