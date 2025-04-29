@@ -27,10 +27,17 @@ pub enum FunctionType {
     METHOD,
 }
 
+#[derive(Clone, PartialEq)]
+pub enum ClassType {
+    NONE,
+    CLASS,
+}
+
 pub struct Resolver {
     pub interpreter: Box<dyn InterpreterTrait>,
     pub scopes: Vec<HashMap<String, bool>>,
     pub current_function: FunctionType,
+    pub current_class: ClassType,
 }
 
 impl Resolver {
@@ -142,6 +149,8 @@ impl Resolver {
 
     pub fn visit_literal_expression(&mut self, _expression: &mut Literal) {}
     pub fn visit_class_statement(&mut self, statement: &mut ClassStatement) {
+        let prev = self.current_class.clone();
+        self.current_class = ClassType::CLASS;
         self.declare(&statement.name);
         self.define(&statement.name);
         self.begin_scope();
@@ -156,9 +165,16 @@ impl Resolver {
             }
         }
         self.end_scope();
+        self.current_class = prev;
     }
 
     pub fn visit_this_expression(&mut self, expression: &mut ThisExpression) {
+        if self.current_class == ClassType::NONE {
+            self.error(
+                String::from("Can't use 'this' outside of a class."),
+                &expression.value,
+            );
+        }
         let token = expression.value.clone();
         self.resolve_local(expression, token);
     }

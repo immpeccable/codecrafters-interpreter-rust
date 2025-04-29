@@ -14,6 +14,7 @@ mod utils;
 
 use enums::LiteralValue::LiteralValue;
 use implementation::Interpreter::Interpreter;
+use implementation::Resolver::ClassType;
 use implementation::Resolver::FunctionType;
 use implementation::Resolver::Resolver;
 use traits::Interpreter::InterpreterTrait;
@@ -462,6 +463,7 @@ fn main() {
                 scopes: Vec::from([HashMap::new()]),
                 interpreter: Box::new(intp),
                 current_function: FunctionType::NONE,
+                current_class: ClassType::NONE,
             };
 
             match parser_res {
