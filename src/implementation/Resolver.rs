@@ -109,23 +109,20 @@ impl Resolver {
     }
 
     pub fn visit_return_statement(&mut self, statement: &mut ReturnStatement) {
-        match &mut statement.value {
-            Some(v) => {
-                if self.current_function == FunctionType::NONE {
-                    self.error(
-                        String::from("Can't return from top-level code."),
-                        &statement.keyword,
-                    )
-                }
-                if self.current_function == FunctionType::INITIALIZER {
-                    self.error(
-                        String::from("Can't return a value from an initializer."),
-                        &statement.keyword,
-                    );
-                }
-                v.resolve(self);
+        if self.current_function == FunctionType::NONE {
+            self.error(
+                String::from("Can't return from top-level code."),
+                &statement.keyword,
+            )
+        }
+        if let Some(v) = &mut statement.value {
+            if self.current_function == FunctionType::INITIALIZER {
+                self.error(
+                    String::from("Can't return a value from an initializer."),
+                    &statement.keyword,
+                );
             }
-            None => {}
+            v.resolve(self);
         }
     }
 
