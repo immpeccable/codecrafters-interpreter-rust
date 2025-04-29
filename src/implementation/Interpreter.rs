@@ -533,7 +533,7 @@ impl InterpreterTrait for Interpreter {
                 let value = self.evaluate(v)?;
                 return Ok(Some(value));
             }
-            None => Ok(None),
+            None => Ok(Some(LiteralValue::Nil)),
         }
     }
 
