@@ -10,6 +10,7 @@ use super::{
     Environment::Environment,
     FunctionStatement::FunctionStatement,
     Interpreter::{Interpreter, SharedEnv},
+    LoxInstance::LoxInstance,
 };
 
 pub struct LoxFunction {
@@ -23,6 +24,25 @@ impl Clone for LoxFunction {
             declaration: self.declaration.clone(),
             closure: self.closure.clone(),
         }
+    }
+}
+
+impl LoxFunction {
+    pub fn bind(&mut self, instance: &mut LoxInstance) -> LoxFunction {
+        let parent = Rc::clone(&self.closure);
+        let child = Rc::new(RefCell::new(Environment {
+            values: HashMap::new(),
+            enclosing: Some(parent),
+        }));
+        child.borrow_mut().define(
+            String::from("this"),
+            LiteralValue::Instance(Rc::new(RefCell::new(instance.clone()))),
+        );
+
+        return LoxFunction {
+            declaration: self.declaration.clone(),
+            closure: child,
+        };
     }
 }
 

@@ -11,16 +11,20 @@ pub struct LoxInstance {
 }
 
 impl LoxInstance {
-    pub fn get(&self, token: Token) -> Option<LiteralValue> {
+    pub fn get(&mut self, token: Token) -> Option<LiteralValue> {
         if self.fields.contains_key(&token.token_value.to_string()) {
             return self.fields.get(&token.token_value.to_string()).cloned();
         } else {
             match self.klass.find_method(token) {
-                Some(v) => Some(LiteralValue::Function(v)),
+                Some(mut v) => {
+                    let f = v.bind(self);
+                    Some(LiteralValue::Function(f))
+                }
                 None => None,
             }
         }
     }
+
     pub fn set(&mut self, token: Token, value: LiteralValue) {
         self.fields.insert(token.token_value.to_string(), value);
     }

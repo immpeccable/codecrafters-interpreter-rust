@@ -1,4 +1,7 @@
-use crate::{enums::LiteralValue::LiteralValue, implementation::Interpreter::Interpreter};
+use crate::{
+    enums::LiteralValue::LiteralValue,
+    implementation::{Interpreter::Interpreter, LoxInstance::LoxInstance},
+};
 
 pub trait LoxCallableTrait {
     fn arity(&mut self) -> usize;

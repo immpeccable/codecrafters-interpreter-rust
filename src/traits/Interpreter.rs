@@ -15,6 +15,7 @@ use crate::implementation::LogicalExpression::LogicalExpression;
 use crate::implementation::PrintStatement::PrintStatement;
 use crate::implementation::ReturnStatement::ReturnStatement;
 use crate::implementation::SetExpression::SetExpression;
+use crate::implementation::ThisExpression::ThisExpression;
 use crate::implementation::Token::Token;
 use crate::implementation::UnaryExpression::UnaryExpression;
 use crate::implementation::VariableExpression::VariableExpression;
@@ -89,6 +90,10 @@ pub trait InterpreterTrait {
     fn visit_set_expression(
         &mut self,
         expression: &mut SetExpression,
+    ) -> Result<LiteralValue, String>;
+    fn visit_this_expression(
+        &mut self,
+        expression: &mut ThisExpression,
     ) -> Result<LiteralValue, String>;
     fn visit_call_expression(
         &mut self,

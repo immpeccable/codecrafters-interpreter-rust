@@ -15,8 +15,8 @@ use super::{
     ExpressionStatement::ExpressionStatement, FunctionStatement::FunctionStatement,
     GetExpression::GetExpression, Grouping::Grouping, IfStatement::IfStatement, Literal::Literal,
     LogicalExpression::LogicalExpression, PrintStatement::PrintStatement,
-    ReturnStatement::ReturnStatement, SetExpression::SetExpression, Token::Token,
-    UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
+    ReturnStatement::ReturnStatement, SetExpression::SetExpression, ThisExpression::ThisExpression,
+    Token::Token, UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
     VariableStatement::VariableStatement, WhileStatement::WhileStatement,
 };
 
@@ -144,6 +144,9 @@ impl Resolver {
     pub fn visit_class_statement(&mut self, statement: &mut ClassStatement) {
         self.declare(&statement.name);
         self.define(&statement.name);
+        self.begin_scope();
+        let last = self.scopes.last_mut().unwrap();
+        last.insert(String::from("this"), true);
         for method in &mut statement.methods {
             let declaration = FunctionType::METHOD;
             if let Some(method_fn) = method.as_any_mut().downcast_mut::<FunctionStatement>() {
@@ -152,6 +155,12 @@ impl Resolver {
                 unreachable!("ClassStatement.methods must all be functions");
             }
         }
+        self.end_scope();
+    }
+
+    pub fn visit_this_expression(&mut self, expression: &mut ThisExpression) {
+        let token = expression.value.clone();
+        self.resolve_local(expression, token);
     }
 
     fn error(&self, message: String, token: &Token) {

@@ -25,6 +25,7 @@ use super::LogicalExpression::LogicalExpression;
 use super::PrintStatement::PrintStatement;
 use super::ReturnStatement::ReturnStatement;
 use super::SetExpression::SetExpression;
+use super::ThisExpression::ThisExpression;
 use super::VariableExpression::VariableExpression;
 use super::VariableStatement::VariableStatement;
 use super::WhileStatement::WhileStatement;
@@ -177,6 +178,12 @@ impl Parser {
             let token = self.previous()?;
             return Ok(Box::new(VariableExpression {
                 variable: token,
+                id: rng().random(),
+            }));
+        } else if self.match_tokens(&Vec::from([TokenType::THIS]))? {
+            let token = self.previous()?;
+            return Ok(Box::new(ThisExpression {
+                value: token,
                 id: rng().random(),
             }));
         } else {

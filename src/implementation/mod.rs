@@ -27,3 +27,4 @@ pub mod UnaryExpression;
 pub mod VariableExpression;
 pub mod VariableStatement;
 pub mod WhileStatement;
+pub mod ThisExpression;

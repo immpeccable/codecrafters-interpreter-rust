@@ -3,6 +3,7 @@ use core::panic;
 use std::{
     cell::RefCell,
     collections::HashMap,
+    f32::consts::E,
     hash::Hash,
     io::{self, Write},
     process::exit,
@@ -278,6 +279,13 @@ impl InterpreterTrait for Interpreter {
             }
             op => panic!("Unexpected unary operator: {:?}", op),
         }
+    }
+
+    fn visit_this_expression(
+        &mut self,
+        expression: &mut super::ThisExpression::ThisExpression,
+    ) -> Result<LiteralValue, String> {
+        self.look_up_variable(&expression.value, expression)
     }
 
     fn look_up_variable(
