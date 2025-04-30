@@ -1,6 +1,7 @@
 use core::panic;
 
 use std::{
+    boxed,
     cell::RefCell,
     collections::HashMap,
     f32::consts::E,
@@ -102,6 +103,20 @@ impl InterpreterTrait for Interpreter {
         &mut self,
         statement: &mut super::ClassStatement::ClassStatement,
     ) -> Result<Option<LiteralValue>, String> {
+        let mut rc_superclass: Option<Rc<RefCell<LoxClass>>> = None;
+        if let Some(superclass) = &mut statement.super_class {
+            let cloned = superclass.clone();
+            let mut boxed_cloned: Box<dyn Expression> = Box::new(cloned);
+            match self.evaluate(&mut boxed_cloned)? {
+                LiteralValue::LoxClass(loxcl) => rc_superclass = Some(Rc::new(RefCell::new(loxcl))),
+                _ => {
+                    self.error(
+                        String::from("Superclass must be a class."),
+                        &superclass.variable,
+                    );
+                }
+            }
+        }
         self.environment
             .borrow_mut()
             .define(statement.name.token_value.clone(), LiteralValue::Nil);
@@ -122,6 +137,7 @@ impl InterpreterTrait for Interpreter {
         let klass = LoxClass {
             name: statement.name.token_value.clone(),
             methods,
+            superclass: rc_superclass,
         };
         self.environment
             .borrow_mut()

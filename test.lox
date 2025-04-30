@@ -1,8 +1,6 @@
-class Person {
-  init() {
-    print "world";
-    return;
-  }
-}
+class Doughnut {}
 
-Person();
+class BostonCream < Doughnut {}
+
+print Doughnut();
+print BostonCream();

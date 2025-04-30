@@ -11,6 +11,7 @@ use super::{LoxFunction::LoxFunction, LoxInstance::LoxInstance, Token::Token};
 pub struct LoxClass {
     pub name: String,
     pub methods: HashMap<String, LoxFunction>,
+    pub superclass: Option<Rc<RefCell<LoxClass>>>,
 }
 
 impl LoxCallableTrait for LoxClass {

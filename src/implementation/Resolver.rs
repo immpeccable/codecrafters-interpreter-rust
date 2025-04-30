@@ -162,6 +162,20 @@ impl Resolver {
         self.current_class = ClassType::CLASS;
         self.declare(&statement.name);
         self.define(&statement.name);
+
+        if let Some(superclass) = &mut statement.super_class {
+            if statement
+                .name
+                .token_value
+                .eq(&superclass.variable.token_value)
+            {
+                self.error(
+                    String::from("A class can't inherit from itself."),
+                    &superclass.variable,
+                );
+            }
+            self.visit_variable_expression(superclass);
+        }
         self.begin_scope();
         let last = self.scopes.last_mut().unwrap();
         last.insert(String::from("this"), true);

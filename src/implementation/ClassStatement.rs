@@ -2,11 +2,12 @@ use std::any::Any;
 
 use crate::{enums::LiteralValue::LiteralValue, traits::Statement::Statement};
 
-use super::Token::Token;
+use super::{Token::Token, VariableExpression::VariableExpression};
 
 pub struct ClassStatement {
     pub name: Token,
     pub methods: Vec<Box<dyn Statement>>,
+    pub super_class: Option<VariableExpression>,
 }
 
 impl Statement for ClassStatement {
@@ -17,6 +18,7 @@ impl Statement for ClassStatement {
         Box::new(ClassStatement {
             name: self.name.clone(),
             methods: self.methods.iter().map(|stmt| stmt.clone_box()).collect(),
+            super_class: self.super_class.clone(),
         })
     }
     fn interpret(

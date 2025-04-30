@@ -615,6 +615,17 @@ impl Parser {
 
     fn class_declaration(&mut self) -> Result<Box<dyn Statement>, String> {
         let class_name = self.consume(TokenType::IDENTIFIER, String::from("Expect class name."))?;
+        let mut super_class = None;
+        if self.match_tokens(&vec![TokenType::LESS])? {
+            self.consume(
+                TokenType::IDENTIFIER,
+                String::from("Expect superclass name."),
+            )?;
+            super_class = Some(VariableExpression {
+                variable: self.previous()?,
+                id: rng().random(),
+            });
+        }
         self.consume(
             TokenType::LEFT_BRACE,
             String::from("Expect '{' before class body."),
@@ -630,6 +641,7 @@ impl Parser {
         return Ok(Box::new(ClassStatement {
             name: class_name,
             methods,
+            super_class,
         }));
     }
 
