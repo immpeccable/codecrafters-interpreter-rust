@@ -1,6 +1,12 @@
-class Doughnut {}
+class Doughnut {
+  cook() {
+    print "Fry until golden brown.";
+  }
+}
 
+// BostonCream is a subclass of Doughnut
 class BostonCream < Doughnut {}
 
-print Doughnut();
-print BostonCream();
+// BostonCream class should inherit the cook
+// method from Doughnut class
+BostonCream().cook();

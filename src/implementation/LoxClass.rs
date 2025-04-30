@@ -41,6 +41,12 @@ impl LoxCallableTrait for LoxClass {
 
 impl LoxClass {
     pub fn find_method(&self, method_name: String) -> Option<LoxFunction> {
-        return self.methods.get(&method_name).cloned();
+        if let Some(mt) = self.methods.get(&method_name) {
+            return Some(mt.clone());
+        }
+        if let Some(superclass) = &self.superclass {
+            return superclass.borrow_mut().find_method(method_name);
+        }
+        return None;
     }
 }
