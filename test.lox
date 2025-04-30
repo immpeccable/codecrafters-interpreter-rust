@@ -4,9 +4,12 @@ class Doughnut {
   }
 }
 
-// BostonCream is a subclass of Doughnut
-class BostonCream < Doughnut {}
+// Super can be used to call the overridden method
+// of the parent class
+class BostonCream < Doughnut {
+  cook() {
+    super.cook();
+  }
+}
 
-// BostonCream class should inherit the cook
-// method from Doughnut class
 BostonCream().cook();

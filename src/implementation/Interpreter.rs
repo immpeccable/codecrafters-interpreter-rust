@@ -28,9 +28,10 @@ use super::{
     Environment::Environment, ExpressionStatement::ExpressionStatement,
     FunctionStatement::FunctionStatement, GetExpression::GetExpression, Grouping::Grouping,
     IfStatement::IfStatement, Literal::Literal, LoxClass::LoxClass, LoxFunction::LoxFunction,
-    PrintStatement::PrintStatement, ReturnStatement::ReturnStatement, Token::Token,
-    UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
-    VariableStatement::VariableStatement, WhileStatement::WhileStatement,
+    PrintStatement::PrintStatement, ReturnStatement::ReturnStatement,
+    SuperExpression::SuperExpression, Token::Token, UnaryExpression::UnaryExpression,
+    VariableExpression::VariableExpression, VariableStatement::VariableStatement,
+    WhileStatement::WhileStatement,
 };
 
 pub type SharedEnv = Rc<RefCell<Environment>>;
@@ -103,23 +104,43 @@ impl InterpreterTrait for Interpreter {
         &mut self,
         statement: &mut super::ClassStatement::ClassStatement,
     ) -> Result<Option<LiteralValue>, String> {
-        let mut rc_superclass: Option<Rc<RefCell<LoxClass>>> = None;
-        if let Some(superclass) = &mut statement.super_class {
-            let cloned = superclass.clone();
+        let mut superclass = None;
+        if let Some(statement_superclass) = &mut statement.super_class {
+            let cloned = statement_superclass.clone();
             let mut boxed_cloned: Box<dyn Expression> = Box::new(cloned);
             match self.evaluate(&mut boxed_cloned)? {
-                LiteralValue::LoxClass(loxcl) => rc_superclass = Some(Rc::new(RefCell::new(loxcl))),
+                LiteralValue::LoxClass(loxcl) => superclass = Some(loxcl),
                 _ => {
                     self.error(
                         String::from("Superclass must be a class."),
-                        &superclass.variable,
+                        &statement_superclass.variable,
                     );
                 }
             }
         }
+
         self.environment
             .borrow_mut()
             .define(statement.name.token_value.clone(), LiteralValue::Nil);
+
+        let parent = Rc::clone(&self.environment);
+        let super_class_environment = Rc::new(RefCell::new(Environment {
+            values: HashMap::new(),
+            enclosing: Some(parent),
+        }));
+
+        let mut old_pointer = None;
+
+        if let Some(_) = &mut statement.super_class {
+            old_pointer = Some(std::mem::replace(
+                &mut self.environment,
+                super_class_environment,
+            ));
+            self.environment.borrow_mut().define(
+                "super".to_string(),
+                LiteralValue::LoxClass(superclass.clone().unwrap()),
+            );
+        }
 
         let mut methods: HashMap<String, LoxFunction> = HashMap::new();
         for method in &mut statement.methods {
@@ -134,15 +155,59 @@ impl InterpreterTrait for Interpreter {
                 unreachable!("ClassStatement.methods must all be functions");
             }
         }
+        let mut superclass_variable = None;
+        if let Some(_) = &statement.super_class {
+            superclass_variable = Some(Box::new(superclass.unwrap()))
+        }
         let klass = LoxClass {
             name: statement.name.token_value.clone(),
             methods,
-            superclass: rc_superclass,
+            superclass: superclass_variable,
         };
+
+        if let Some(_) = statement.super_class {
+            self.environment = old_pointer.unwrap();
+        }
         self.environment
             .borrow_mut()
             .assign(statement.name.clone(), LiteralValue::LoxClass(klass))?;
         return Ok(None);
+    }
+    fn visit_super_expression(
+        &mut self,
+        expression: &mut SuperExpression,
+    ) -> Result<LiteralValue, String> {
+        let depth = *self
+            .locals
+            .get(&expression.id)
+            .expect("`super` should have been resolved statically");
+
+        // `super` is defined exactly `depth` scopes up…
+        let super_val = self
+            .environment
+            .get_at(depth, "super")
+            .ok_or_else(|| self.error("Superclass must be a class.".into(), &expression.keyword))?;
+
+        // … and `this` is one scope closer
+        let this_val = self.environment.get_at(depth - 1, "this").ok_or_else(|| {
+            self.error(
+                "`this` must be defined when you use `super`.".into(),
+                &expression.keyword,
+            )
+        })?;
+
+        if let (LiteralValue::LoxClass(super_cls), LiteralValue::Instance(ins_rc)) =
+            (super_val, this_val)
+        {
+            if let Some(method_fn) = super_cls.find_method(expression.method.token_value.clone()) {
+                return Ok(LiteralValue::Function(method_fn.bind(ins_rc)));
+            }
+        }
+
+        Err(self.error(
+            format!("Undefined property {}.", expression.method.token_value),
+            &expression.method,
+        ))
     }
 
     fn visit_binary_expression(

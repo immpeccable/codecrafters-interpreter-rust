@@ -15,8 +15,9 @@ use super::{
     ExpressionStatement::ExpressionStatement, FunctionStatement::FunctionStatement,
     GetExpression::GetExpression, Grouping::Grouping, IfStatement::IfStatement, Literal::Literal,
     LogicalExpression::LogicalExpression, PrintStatement::PrintStatement,
-    ReturnStatement::ReturnStatement, SetExpression::SetExpression, ThisExpression::ThisExpression,
-    Token::Token, UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
+    ReturnStatement::ReturnStatement, SetExpression::SetExpression,
+    SuperExpression::SuperExpression, ThisExpression::ThisExpression, Token::Token,
+    UnaryExpression::UnaryExpression, VariableExpression::VariableExpression,
     VariableStatement::VariableStatement, WhileStatement::WhileStatement,
 };
 
@@ -32,6 +33,7 @@ pub enum FunctionType {
 pub enum ClassType {
     NONE,
     CLASS,
+    SUBCLASS,
 }
 
 pub struct Resolver {
@@ -157,6 +159,21 @@ impl Resolver {
     }
 
     pub fn visit_literal_expression(&mut self, _expression: &mut Literal) {}
+    pub fn visit_super_expression(&mut self, expression: &mut SuperExpression) {
+        if self.current_class == ClassType::NONE {
+            self.error(
+                String::from("Can't use 'super' outside of a class."),
+                &expression.keyword,
+            );
+        } else if self.current_class != ClassType::SUBCLASS {
+            self.error(
+                String::from("Can't use 'super' in a class with no superclass."),
+                &expression.keyword,
+            );
+        }
+        let token = expression.keyword.clone();
+        self.resolve_local(expression, token);
+    }
     pub fn visit_class_statement(&mut self, statement: &mut ClassStatement) {
         let prev = self.current_class.clone();
         self.current_class = ClassType::CLASS;
@@ -176,6 +193,12 @@ impl Resolver {
             }
             self.visit_variable_expression(superclass);
         }
+        if let Some(_) = &mut statement.super_class {
+            self.begin_scope();
+            self.current_class = ClassType::SUBCLASS;
+            let last = self.scopes.last_mut().unwrap();
+            last.insert("super".to_string(), true);
+        }
         self.begin_scope();
         let last = self.scopes.last_mut().unwrap();
         last.insert(String::from("this"), true);
@@ -192,6 +215,9 @@ impl Resolver {
             }
         }
         self.end_scope();
+        if let Some(_) = &mut statement.super_class {
+            self.end_scope();
+        }
         self.current_class = prev;
     }
 

@@ -15,6 +15,7 @@ use crate::implementation::LogicalExpression::LogicalExpression;
 use crate::implementation::PrintStatement::PrintStatement;
 use crate::implementation::ReturnStatement::ReturnStatement;
 use crate::implementation::SetExpression::SetExpression;
+use crate::implementation::SuperExpression::SuperExpression;
 use crate::implementation::ThisExpression::ThisExpression;
 use crate::implementation::Token::Token;
 use crate::implementation::UnaryExpression::UnaryExpression;
@@ -62,6 +63,10 @@ pub trait InterpreterTrait {
         statement: &mut VariableStatement,
     ) -> Result<Option<LiteralValue>, String>;
     fn visit_grouping(&mut self, expression: &mut Grouping) -> Result<LiteralValue, String>;
+    fn visit_super_expression(
+        &mut self,
+        expression: &mut SuperExpression,
+    ) -> Result<LiteralValue, String>;
     fn visit_literal(&self, expression: &Literal) -> Result<LiteralValue, String>;
     fn evaluate(&mut self, expression: &mut Box<dyn Expression>) -> Result<LiteralValue, String>;
     fn is_truthy(&self, expression: &LiteralValue) -> bool;

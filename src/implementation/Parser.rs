@@ -25,6 +25,7 @@ use super::LogicalExpression::LogicalExpression;
 use super::PrintStatement::PrintStatement;
 use super::ReturnStatement::ReturnStatement;
 use super::SetExpression::SetExpression;
+use super::SuperExpression::SuperExpression;
 use super::ThisExpression::ThisExpression;
 use super::VariableExpression::VariableExpression;
 use super::VariableStatement::VariableStatement;
@@ -184,6 +185,18 @@ impl Parser {
             let token = self.previous()?;
             return Ok(Box::new(ThisExpression {
                 value: token,
+                id: rng().random(),
+            }));
+        } else if self.match_tokens(&Vec::from([TokenType::SUPER]))? {
+            let keyword = self.previous()?;
+            self.consume(TokenType::DOT, String::from("Expect '.' after 'super'."))?;
+            let method = self.consume(
+                TokenType::IDENTIFIER,
+                String::from("Expect superclass method name."),
+            )?;
+            return Ok(Box::new(SuperExpression {
+                keyword,
+                method,
                 id: rng().random(),
             }));
         } else {

@@ -11,7 +11,7 @@ use super::{LoxFunction::LoxFunction, LoxInstance::LoxInstance, Token::Token};
 pub struct LoxClass {
     pub name: String,
     pub methods: HashMap<String, LoxFunction>,
-    pub superclass: Option<Rc<RefCell<LoxClass>>>,
+    pub superclass: Option<Box<LoxClass>>,
 }
 
 impl LoxCallableTrait for LoxClass {
@@ -45,7 +45,7 @@ impl LoxClass {
             return Some(mt.clone());
         }
         if let Some(superclass) = &self.superclass {
-            return superclass.borrow_mut().find_method(method_name);
+            return superclass.find_method(method_name);
         }
         return None;
     }
